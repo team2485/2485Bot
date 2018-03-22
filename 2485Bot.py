@@ -1,5 +1,7 @@
+import json
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
+import requests
 from slackclient import SlackClient
 
 sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
@@ -25,7 +27,14 @@ class S(BaseHTTPRequestHandler):
     def do_POST(self):
         # Doesn't do anything with posted data
         self._set_headers()
-        self.wfile.write("<html><body><h1>POST!</h1></body></html>")
+        headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+        # Make a get request to get the latest position of the international space station from the opennotify api.
+        response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status", headers=headers)
+
+        # Print the status code of the response.
+        print('STATUS CODE: ' + str(response.status_code))
+        data = json.loads(response.text)
+        self.wfile.write(data["overall_status_str"])
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
