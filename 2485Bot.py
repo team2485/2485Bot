@@ -34,7 +34,10 @@ class S(BaseHTTPRequestHandler):
         # Print the status code of the response.
         print('STATUS CODE: ' + str(response.status_code))
         data = json.loads(response.text)
-        self.wfile.write(data["overall_status_str"])
+        if data["ranking"] != None:
+            self.wfile.write('Team 2485 is ranked ' + data["ranking"]["rank"])
+        else:
+            self.wfile.write(data["overall_status_str"])
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
