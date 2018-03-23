@@ -43,7 +43,12 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        if ("channel_created" in post_data or "channel_unarchive" in post_data):
+        if ("channel_created" in post_data):
+            self._set_headers()
+            print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","user"')])
+            doMessage(post_data[post_data.index(',"channel":') + 12:post_data.index('","is_channel"')], 'FIRST!!1!')
+            self.wfile.write(200)
+        elif "channel_unarchive" in post_data:
             self._set_headers()
             print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')])
             doMessage(post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')], 'FIRST!!1!')
