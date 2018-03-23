@@ -27,10 +27,9 @@ class S(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Doesn't do anything with posted data
-        print(self.command)
-        for x in self.headers:
-            print(x)
-        self.headers.values()
+
+        print('self.request!!!: ' + self.request)
+        print('self.wfile!!!: ' + self.wfile)
         self._set_headers()
         headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
         # Make a get request to get the latest position of the international space station from the opennotify api.
