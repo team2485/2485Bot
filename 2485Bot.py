@@ -6,10 +6,11 @@ from slackclient import SlackClient
 
 sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
 sc.api_call(
-  "chat.postMessage",
-  channel="C9VB0E6ES",
-  text="Hello from Python! :tada:"
+    "chat.postMessage",
+    channel="C9VB0E6ES",
+    text="Hello from Python! :tada:"
 )
+
 
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -26,6 +27,10 @@ class S(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # Doesn't do anything with posted data
+        print(self.command)
+        for x in self.headers.values():
+            print(x)
+        self.headers.values()
         self._set_headers()
         headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
         # Make a get request to get the latest position of the international space station from the opennotify api.
