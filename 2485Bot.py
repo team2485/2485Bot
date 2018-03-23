@@ -28,8 +28,10 @@ class S(BaseHTTPRequestHandler):
     def do_POST(self):
         # Doesn't do anything with posted data
 
-        print('self.request!!!: ' + str(self.request))
-        print('self.wfile!!!: ' + str(self.wfile))
+        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+        post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        for x in post_data:
+            print(x)
         self._set_headers()
         headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
         # Make a get request to get the latest position of the international space station from the opennotify api.
