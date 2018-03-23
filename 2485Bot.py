@@ -103,6 +103,10 @@ class S(BaseHTTPRequestHandler):
             else:
                 doMessage('C0A9JLBL2', clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
+        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'init-cheer':
+            self._set_headers()
+            doMessage('C0A9JLBL2', 'WE ARE...')
+            self.wfile.write('Success!')
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
