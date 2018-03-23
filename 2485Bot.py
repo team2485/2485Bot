@@ -12,6 +12,15 @@ sc.api_call(
 )
 
 
+def clear_b(input):
+    if "<b>" in input:
+        return clear_b(input[:input.index('<b>')] + input[input.index('<b>') + 3:])
+    elif "</b>" in input:
+        return clear_b(input[:input.index('</b>')] + input[input.index('</b>') + 4:])
+    else:
+        return input
+
+
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
@@ -28,26 +37,35 @@ class S(BaseHTTPRequestHandler):
     def do_POST(self):
         # Doesn't do anything with posted data
 
-        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-        post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
+        post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         if post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
             headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
-# Make a get request to get the latest position of the international space station from the opennotify api.
-            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status", headers=headers)
+            # Make a get request to get the latest position of the international space station from the opennotify api.
+            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status",
+                                    headers=headers)
 
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
+            print('TBA RETURN: ' + str(data))
             if "ranking" in data:
-                self.wfile.write('Team 2485 is ranked ' + data["ranking"]["rank"])
-                print('TBA RETURN: ' + data["ranking"]["rank"])
+                self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
-                self.wfile.write(data["overall_status_str"])
+                self.wfile.write(clear_b(data["overall_status_str"]))
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'matches':
             print('Matches!')
-
-
+            headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+            # Make a get request to get the latest position of the international space station from the opennotify api.
+            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/matches",
+                                    headers=headers)
+            # Print the status code of the response.
+            print('STATUS CODE: ' + str(response.status_code))
+            print(response.content)
+            data = json.loads(response.text)
+            print(data[""])
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
