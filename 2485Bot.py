@@ -43,6 +43,7 @@ class S(BaseHTTPRequestHandler):
             self._set_headers()
             print(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
+            print(post_data)
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
             headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
