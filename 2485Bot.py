@@ -46,6 +46,7 @@ class S(BaseHTTPRequestHandler):
         if ("channel_created" in post_data or "channel_unarchive" in post_data):
             self._set_headers()
             print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"') - 1])
+            doMessage(post_data[post_data.index(',"channel":') + 12:post_data.index('","user"') - 1], 'FIRST!!1!')
             self.wfile.write(200)
         elif ("challenge" in post_data):
             self._set_headers()
