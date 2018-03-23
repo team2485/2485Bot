@@ -8,7 +8,7 @@ sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
 sc.api_call(
     "chat.postMessage",
     channel="C9VB0E6ES",
-    text="Starting bot!l//"
+    text="Starting bot!"
 )
 
 
@@ -20,7 +20,7 @@ class S(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write("<html><body><h1>hi!</h1></body></html>")
+        self.wfile.write('<html><body><h1>hi!</h1></body></html>')
 
     def do_HEAD(self):
         self._set_headers()
@@ -30,7 +30,7 @@ class S(BaseHTTPRequestHandler):
 
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         post_data = self.rfile.read(content_length) # <--- Gets the data itself
-        print(post_data)
+        print(post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')-1])
         self._set_headers()
         headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
         # Make a get request to get the latest position of the international space station from the opennotify api.
