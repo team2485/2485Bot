@@ -39,11 +39,11 @@ class S(BaseHTTPRequestHandler):
 
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
+        # print(post_data)
         if("challenge" in post_data):
             self._set_headers()
             print(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
-            print(post_data)
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
             headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
