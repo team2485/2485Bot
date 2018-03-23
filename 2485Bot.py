@@ -8,7 +8,7 @@ sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
 sc.api_call(
     "chat.postMessage",
     channel="C9VB0E6ES",
-    text="Hello from Python! :tada:"
+    text="Starting bot!l//"
 )
 
 
@@ -28,7 +28,7 @@ class S(BaseHTTPRequestHandler):
     def do_POST(self):
         # Doesn't do anything with posted data
         print(self.command)
-        for x in self.headers.values():
+        for x in self.headers:
             print(x)
         self.headers.values()
         self._set_headers()
