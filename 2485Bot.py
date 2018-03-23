@@ -86,6 +86,23 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             data = json.loads(response.text)
             print(data[""])
+        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
+            self._set_headers()
+            headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+            # Make a get request to get the latest position of the international space station from the opennotify api.
+            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status",
+                                    headers=headers)
+
+            # Print the status code of the response.
+            print('STATUS CODE: ' + str(response.status_code))
+            data = json.loads(response.text)
+            print('TBA RETURN: ' + str(data))
+            if "ranking" in data:
+                self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                doMessage('C0A9JLBL2', 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+            else:
+                doMessage('C0A9JLBL2', clear_b(data["overall_status_str"]))
+            self.wfile.write('Success!')
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
