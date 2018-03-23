@@ -5,11 +5,14 @@ import requests
 from slackclient import SlackClient
 
 sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
-sc.api_call(
-    "chat.postMessage",
-    channel="C9VB0E6ES",
-    text="Starting bot!"
-)
+
+
+def doMessage(channel, message):
+    sc.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=message
+    )
 
 
 def clear_b(input):
@@ -40,14 +43,14 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        if("channel_created" in post_data or "channel_unarchive" in post_data):
+        if ("channel_created" in post_data or "channel_unarchive" in post_data):
             self._set_headers()
-            print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')-1])
+            print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"') - 1])
             self.wfile.write(200)
-        elif("challenge" in post_data):
+        elif ("challenge" in post_data):
             self._set_headers()
-            print(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
-            self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}")-2])
+            print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
+            self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
             headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
