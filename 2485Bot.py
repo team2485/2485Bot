@@ -46,7 +46,7 @@ class S(BaseHTTPRequestHandler):
         if "channel_created" in post_data:
             self._set_headers()
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
-            sleep(1000)
+            sleep(1)
             doMessage('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')], 'FIRST!!1!')
             self.wfile.write(200)
         elif "channel_unarchive" in post_data:
