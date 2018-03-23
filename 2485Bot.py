@@ -39,9 +39,9 @@ class S(BaseHTTPRequestHandler):
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
-            print('TBA RETURN: ' + data["ranking"]["rank"])
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + data["ranking"]["rank"])
+                print('TBA RETURN: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(data["overall_status_str"])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'matches':
