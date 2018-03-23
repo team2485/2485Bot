@@ -4,10 +4,10 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import requests
 from slackclient import SlackClient
 
-sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
-
 
 def doMessage(channel, message):
+    sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
+    print('Posting message to channel ' + channel + ' with text: ' + message)
     sc.api_call(
         "chat.postMessage",
         channel=channel,
