@@ -39,7 +39,7 @@ class S(BaseHTTPRequestHandler):
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
-            print('TBA RETURN: ' + data)
+            print('TBA RETURN: ' + data["ranking"]["rank"])
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + data["ranking"]["rank"])
             else:
