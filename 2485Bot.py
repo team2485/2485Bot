@@ -1,4 +1,5 @@
 import json
+import datetime
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
 import requests
@@ -23,6 +24,10 @@ def clear_b(input):
     else:
         return input
 
+def getBlueAllianceResponse(request):
+    headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+    return requests.get("http://thebluealliance.com/api/v3/team/frc2485%s" % (request),
+                            headers=headers)
 
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -43,6 +48,10 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
+        event = "cmptx";
+        year = datetime.datetime.now().year
+        event_key = year + event
+
         if "channel_created" in post_data:
             self._set_headers()
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
@@ -60,11 +69,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
-            headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
-            # Make a get request to get the latest position of the international space station from the opennotify api.
-            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status",
-                                    headers=headers)
-
+            response = getBlueAllianceResponse("event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
@@ -77,10 +82,7 @@ class S(BaseHTTPRequestHandler):
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'matches':
             self._set_headers()
             print('Matches!')
-            headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
-            # Make a get request to get the latest position of the international space station from the opennotify api.
-            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/matches",
-                                    headers=headers)
+            response = getBlueAllianceResponse("event/%s/matches/simple" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
@@ -88,11 +90,7 @@ class S(BaseHTTPRequestHandler):
             print(data[""])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
             self._set_headers()
-            headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
-            # Make a get request to get the latest position of the international space station from the opennotify api.
-            response = requests.get("http://thebluealliance.com/api/v3/team/frc2485/event/2018nvlv/status",
-                                    headers=headers)
-
+            response = getBlueAllianceResponse("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
@@ -107,6 +105,14 @@ class S(BaseHTTPRequestHandler):
             self._set_headers()
             doMessage('C0A9JLBL2', 'WE ARE...')
             self.wfile.write('Success!')
+        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'cheer':
+            self._set_headers()
+            doMessage('C0A9JLBL2', 'WARLORDS!')
+            self.wfile.write('Success!')
+        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'cheera':
+            self._set_headers()
+            doMessage('C0A9JLBL2', 'WARLORDA!')
+            self.wfile.write('Success!')
 
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
@@ -114,7 +120,6 @@ def run(server_class=HTTPServer, handler_class=S, port=80):
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'
     httpd.serve_forever()
-
 
 if __name__ == "__main__":
     from sys import argv
