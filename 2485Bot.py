@@ -49,8 +49,8 @@ class S(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
         event = "cmptx";
-        year = datetime.datetime.now().year
-        event_key = year + event
+        = datetime.datetime.now().year
+        event_key = str(year) + event
 
         if "channel_created" in post_data:
             self._set_headers()
