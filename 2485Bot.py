@@ -49,7 +49,7 @@ class S(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
         event = "cmptx";
-        = datetime.datetime.now().year
+        year = datetime.datetime.now().year
         event_key = str(year) + event
 
         if "channel_created" in post_data:
