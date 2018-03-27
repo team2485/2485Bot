@@ -70,7 +70,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
             self._set_headers()
-            response = getBlueAllianceResponse("event/%s/status" % event_key)
+            response = getBlueAllianceResponse("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
@@ -83,7 +83,7 @@ class S(BaseHTTPRequestHandler):
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'matches':
             self._set_headers()
             print('Matches!')
-            response = getBlueAllianceResponse("event/%s/matches/simple" % event_key)
+            response = getBlueAllianceResponse("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
