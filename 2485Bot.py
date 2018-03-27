@@ -48,7 +48,7 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        event = "cmptx";
+        event = "carv";
         year = datetime.datetime.now().year
         event_key = str(year) + event
         print("YEAR ->>>>>>>>>>> " + event_key)
