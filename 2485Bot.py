@@ -26,6 +26,7 @@ def clear_b(input):
 
 def getBlueAllianceResponse(request):
     headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+    print("URL ->>> " + ("http://thebluealliance.com/api/v3/team/frc2485%s" % request))
     return requests.get("http://thebluealliance.com/api/v3/team/frc2485%s" % request,
                             headers=headers)
 
@@ -48,7 +49,7 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        event = "carv";
+        event = "nvlv";
         year = datetime.datetime.now().year
         event_key = str(year) + event
         print("YEAR ->>>>>>>>>>> " + event_key)
