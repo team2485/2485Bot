@@ -77,7 +77,7 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
-                self.wfile.write(clear_b(data["ranking"]["rank"]))
+                self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
