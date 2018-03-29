@@ -85,7 +85,7 @@ class S(BaseHTTPRequestHandler):
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
             data = json.loads(response.text)
-            self.wfile.write('Team 2485 is in matches' + clear_b(data[0]["match_number"]))
+            self.wfile.write('Team 2485 is in matches' + clear_b(data["match_number"]))
             print(data[""])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
             response = getBlueAllianceResponse("/event/%s/status" % event_key)
