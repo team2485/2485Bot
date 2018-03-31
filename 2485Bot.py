@@ -84,11 +84,11 @@ class S(BaseHTTPRequestHandler):
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
-            self.wfile.write('Team 2485 is in matches')
+            self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             ans = ""
-            for item in data:
-                ans += str(item["match_number"])
+            for item in data[]:
+                ans += item["match_number"] + ', '
             self.wfile.write(ans)
             print(data[""])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
