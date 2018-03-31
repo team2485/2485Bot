@@ -87,7 +87,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             ans = ""
-            for item in data[]:
+            for item in data:
                 ans += item["match_number"] + ', '
             self.wfile.write(ans)
             print(data[""])
