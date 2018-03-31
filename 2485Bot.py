@@ -88,7 +88,7 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             ans = ""
             for item in data:
-                ans += str(item["match_number"] + ', ')
+                ans += str(item["match_number"]) + ', '
             self.wfile.write(ans)
             print(data[""])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
