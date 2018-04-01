@@ -87,11 +87,14 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             ans = ""
+            length = Object.keys(data).length
             for item in data:
                 ans += str(item["match_number"])
-                if Object.keys(data).indexOf(item) == (Object.keys(data).length - 2):
+                index = Object.keys(data).indexOf(item)
+                
+                if index == (length - 2):
                     ans += ', and '
-                elif Object.keys(data).indexOf(item) == (Object.keys(data).length - 1):
+                elif index == (length - 1):
                     ans += '.'
                 else:
                     ans += ", "
