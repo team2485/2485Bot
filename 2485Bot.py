@@ -101,6 +101,30 @@ class S(BaseHTTPRequestHandler):
 
             self.wfile.write(ans)
             print(data)
+        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcematches':
+            print('Matches!')
+            response = getBlueAllianceResponse("/event/%s/matches/simple" % event_key)
+            # Print the status code of the response.
+            print('STATUS CODE: ' + str(response.status_code))
+            print(response.content)
+            self.wfile.write('Team 2485 is in matches ')
+            data = json.loads(response.text)
+            ans = ""
+            length = len(data)
+            for item in data:
+                ans += str(item["match_number"])
+                index = data.index(item)
+
+                if index == (length - 2):
+                    ans += ', and '
+                elif index == (length - 1):
+                    ans += '.'
+                else:
+                    ans += ", "
+
+            doMessage(ans)
+            self.wfile.write('Success!')
+            print(data)
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
             response = getBlueAllianceResponse("/event/%s/status" % event_key)
             # Print the status code of the response.
