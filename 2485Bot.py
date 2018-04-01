@@ -100,7 +100,7 @@ class S(BaseHTTPRequestHandler):
                     ans += ", "
 
             self.wfile.write(ans)
-            print(data[""])
+            print(data[])
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
             response = getBlueAllianceResponse("/event/%s/status" % event_key)
             # Print the status code of the response.
