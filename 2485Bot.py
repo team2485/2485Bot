@@ -24,7 +24,27 @@ def clear_b(input):
     else:
         return input
 
+def list_entries(data, request):
+    ans = ""
+    length = len(data)
+    for item in data:
+        ans += str(item[request])
+        index = data.index(item)
+
+        if index == (length - 2):
+            ans += ', and '
+        elif index == (length - 1):
+            ans += '.'
+        else:
+            ans += ", "
+    return ans
+
+def getCommand(post_data, command):
+    return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
+
 class S(BaseHTTPRequestHandler):
+    ANNOUNCEMENTS_ID = 'C0A9JLBL2'
+
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -61,7 +81,7 @@ class S(BaseHTTPRequestHandler):
         elif "challenge" in post_data:
             print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'rank':
+        elif getCommand(post_data, 'rank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -72,7 +92,7 @@ class S(BaseHTTPRequestHandler):
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'matches':
+        elif getCommand(post_data, 'matches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -80,20 +100,8 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            ans = ""
-            length = len(data)
-            for item in data:
-                ans += str(item["match_number"])
-                index = data.index(item)
 
-                if index == (length - 2):
-                    ans += ', and '
-                elif index == (length - 1):
-                    ans += '.'
-                else:
-                    ans += ", "
-
-            self.wfile.write(ans)
+            self.wfile.write(list_entries(data, "match_number"))
             print(data)
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcematches':
             print('Matches!')
@@ -103,20 +111,7 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            ans = ""
-            length = len(data)
-            for item in data:
-                ans += str(item["match_number"])
-                index = data.index(item)
-
-                if index == (length - 2):
-                    ans += ', and '
-                elif index == (length - 1):
-                    ans += '.'
-                else:
-                    ans += ", "
-
-            do_message(ans)
+            do_message('C0A9JLBL2', list_entries(data, "match_number"))
             self.wfile.write('Success!')
             print(data)
         elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
@@ -147,7 +142,6 @@ def run(server_class=HTTPServer, handler_class=S, port=80):
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'
     httpd.serve_forever()
-
 
 if __name__ == "__main__":
     from sys import argv
