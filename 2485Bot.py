@@ -63,7 +63,7 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        event = "nvlv"
+        event = "gal"
         year = datetime.datetime.now().year
         event_key = str(year) + event
         print("YEAR ->>>>>>>>>>> " + event_key)
@@ -103,7 +103,7 @@ class S(BaseHTTPRequestHandler):
 
             self.wfile.write(list_entries(data, "match_number"))
             print(data)
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcematches':
+        elif getCommand(post_data, 'announcematches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -114,7 +114,7 @@ class S(BaseHTTPRequestHandler):
             do_message('C0A9JLBL2', list_entries(data, "match_number"))
             self.wfile.write('Success!')
             print(data)
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'announcerank':
+        elif getCommand(post_data, 'announcerank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -126,18 +126,18 @@ class S(BaseHTTPRequestHandler):
             else:
                 do_message('C0A9JLBL2', clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'init-cheer':
+        elif getCommand(post_data, 'init-cheer'):
             do_message('C0A9JLBL2', 'WE ARE...')
             self.wfile.write('Success!')
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'cheer':
+        elif getCommand(post_data, 'cheer'):
             do_message('C0A9JLBL2', 'WARLORDS!')
             self.wfile.write('Success!')
-        elif post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == 'cheera':
+        elif getCommand(post_data, 'cheera'):
             do_message('C0A9JLBL2', 'WARLORDA!')
             self.wfile.write('Success!')
 
 
-def run(server_class=HTTPServer, handler_class=S, port=80):
+def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'
