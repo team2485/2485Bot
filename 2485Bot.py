@@ -43,7 +43,7 @@ def getCommand(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
 
 class S(BaseHTTPRequestHandler):
-    ANNOUNCEMENTS_ID = 'C0A9JLBL2'
+    CHANNEL_ID = 'CA3188ZFC'
 
     def _set_headers(self):
         self.send_response(200)
@@ -98,10 +98,13 @@ class S(BaseHTTPRequestHandler):
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
-            self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
 
-            self.wfile.write(list_entries(data, "match_number"))
+            if "match_number" in data:
+                self.wfile.write('Team 2485 is in matches ')
+                self.wfile.write(list_entries(data, "match_number"))
+            else:
+                self.wfile.write("Matches have not been posted yet.")
             print(data)
         elif getCommand(post_data, 'announcematches'):
             print('Matches!')
@@ -111,7 +114,7 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            do_message('C0A9JLBL2', list_entries(data, "match_number"))
+            do_message(CHANNEL_ID, list_entries(data, "match_number"))
             self.wfile.write('Success!')
             print(data)
         elif getCommand(post_data, 'announcerank'):
@@ -122,18 +125,18 @@ class S(BaseHTTPRequestHandler):
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                do_message('C0A9JLBL2', 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                do_message(CHANNEL_ID, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
-                do_message('C0A9JLBL2', clear_b(data["overall_status_str"]))
+                do_message(CHANNEL_ID, clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
         elif getCommand(post_data, 'init-cheer'):
-            do_message('C0A9JLBL2', 'WE ARE...')
+            do_message(CHANNEL_ID, 'WE ARE...')
             self.wfile.write('Success!')
         elif getCommand(post_data, 'cheer'):
-            do_message('C0A9JLBL2', 'WARLORDS!')
+            do_message(CHANNEL_ID, 'WARLORDS!')
             self.wfile.write('Success!')
         elif getCommand(post_data, 'cheera'):
-            do_message('C0A9JLBL2', 'WARLORDA!')
+            do_message(CHANNEL_ID, 'WARLORDA!')
             self.wfile.write('Success!')
 
 
