@@ -16,9 +16,9 @@ def getNextMatch(data):
     for item in data:
 	print item["predicted_time"]
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
-            next_match = item
+            match = item
             break
-    return next_match
+    return match
 
 def generateMessage(next_match):
     if 'frc2485' in next_match["blue"]["team_keys"]:
@@ -43,7 +43,7 @@ def postMessage(webhook_url, main):
     if status_code == 200:
         print('Webhook succeeded with status code 200')
     else:
-        print('Webhook failed with status code error %s.' % (status_code))        
+        print('Webhook failed with status code error %s.' % (status_code))
 
 response = TBA.request("/event/%s/matches/simple" % event_key)
 data = json.loads(response.text)
