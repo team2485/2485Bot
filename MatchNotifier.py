@@ -22,7 +22,7 @@ def getNextMatch(data):
     return match
 
 def generateMessage(next_match):
-    if 'frc2485' in next_match["blue"]["team_keys"]:
+    if 'frc2485' in next_match["alliances"]["blue"]["team_keys"]:
         alliance = "blue"
     else:
         alliance = "red"
