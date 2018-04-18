@@ -15,11 +15,11 @@ phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!",
 def getTimestamp():
     return time.time()
 
-def getNextMatchPredictedTime(data):
+def getNextMatch(data):
     for item in data:
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
-            return item["predicted_time"]
-    return -1
+            return data[item]
+    return data[0]
 
 
 def generateMessage(next_match):
@@ -52,5 +52,6 @@ def postMessage(webhook_url, main):
 def run():
     response = TBA.request("/event/%s/matches/simple" % event_key)
     data = json.loads(response.text)
-    if getNextMatchPredictedTime(data) != -1 and getTimestamp > (getNextMatchPredictedTime(data) - 300):
+    next_match = getNextMatch()
+    if "predicted_time" in next_match and getTimestamp > (next_match["predicted_time"] - 300):
         postMessage(webhook_url, generateMessage(next_match))
