@@ -35,7 +35,7 @@ def generateMessage(next_match):
     return output
 
 def postMessage(main):
-    url = os.environ[webhook_url]
+    url = webhook_url
     payload = {
         'text': main
     }
