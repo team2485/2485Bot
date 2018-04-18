@@ -7,6 +7,8 @@ import requests
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
 
+runNotifier = False
+
 #webhook_url = "https://hooks.slack.com/services/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"
 webhook_url = "https://hooks.slack.com/services/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"
 #event_key = '2018gal'
@@ -49,9 +51,15 @@ def postMessage(main):
     else:
         print('Webhook failed with status code error %s.' % (status_code))
 
+def getRunNotifier():
+    return runNotifier
+
+def setRunNotifier(set):
+    runNotifier = set
+
 def run():
     while(True): #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
-        if (runNotifier):
+        if (getRunNotifier()):
             response = TBA.request("/event/%s/matches/simple" % event_key)
             data = json.loads(response.text)
             next_match = getNextMatch(data)

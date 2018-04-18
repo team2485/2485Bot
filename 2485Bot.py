@@ -139,9 +139,11 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Success!')
         elif getCommand(post_data, '-turn-match-notifier'):
             if post_data['text'] == 'on':
-                runNotifier = True
+                MatchNotifier.setRunNotifier(True)
+                self.wfile.write('Match Notifier is on.')
             elif post_data['text'] == 'off':
-                runNotifier = False
+                MatchNotifier.setRunNotifier(False)
+                self.wfile.write('Match Notifier is off.')
             else:
                 self.wfile.write('Invalid parameter.')
 
