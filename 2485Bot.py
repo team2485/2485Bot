@@ -143,6 +143,7 @@ class S(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
+    MatchNotifier.run()
     print 'Starting httpd...'
     httpd.serve_forever()
 

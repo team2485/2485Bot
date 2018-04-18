@@ -6,9 +6,12 @@ import os
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
 
+
+
 webhook_url = "https://hooks.slack.com/services/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"
 event_key = '2018casd'
 phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!", ""]
+
 def getTimestamp():
     return time.time()
 
@@ -46,7 +49,8 @@ def postMessage(webhook_url, main):
     else:
         print('Webhook failed with status code error %s.' % (status_code))
 
-response = TBA.request("/event/%s/matches/simple" % event_key)
-data = json.loads(response.text)
-if getNextMatchPredictedTime(data) != -1 and getTimestamp > (getNextMatchPredictedTime(data) - 300):
-    postMessage(webhook_url, generateMessage(next_match))
+def run():
+    response = TBA.request("/event/%s/matches/simple" % event_key)
+    data = json.loads(response.text)
+    if getNextMatchPredictedTime(data) != -1 and getTimestamp > (getNextMatchPredictedTime(data) - 300):
+        postMessage(webhook_url, generateMessage(next_match))
