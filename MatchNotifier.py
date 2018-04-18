@@ -27,8 +27,7 @@ def generateMessage(next_match):
         alliance = "blue"
     else:
         alliance = "red"
-    output = "Team 2485 will be in match " + str(next_match["match_number"])
-    + " soon on the " + alliance + " alliance. "
+    output = "Team 2485 will be in match " + str(next_match["match_number"]) + " soon on the " + alliance + " alliance. "
     output += phrases[random.randint(0, phrases.length())]
     print output
     return output
