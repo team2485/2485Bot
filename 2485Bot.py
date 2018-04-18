@@ -5,7 +5,9 @@ from time import sleep
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
 import MatchNotifier
+import threading
 
+global runNotifier = False
 
 def do_message(channel, message):
     sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
@@ -44,7 +46,6 @@ def getCommand(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
 
 class S(BaseHTTPRequestHandler):
-    CHANNEL_ID = 'C9X66KH5J' #champs-2018
 
     def _set_headers(self):
         self.send_response(200)
@@ -67,6 +68,7 @@ class S(BaseHTTPRequestHandler):
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
+        CHANNEL_ID = post_data['channel_id']
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
@@ -137,12 +139,18 @@ class S(BaseHTTPRequestHandler):
         elif getCommand(post_data, 'cheera'):
             do_message(CHANNEL_ID, 'WARLORDA!')
             self.wfile.write('Success!')
+        elif getCommand(post_data, '-turn-match-notifier'):
+            if post_data['text'] == 'on':
+                runNotifier = True
+            elif post_data['text'] == 'off':
+                runNotifier = False
+            else:
+                self.wfile.write('Invalid parameter.')
 
 
 def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    MatchNotifier.run()
     print 'Starting httpd...'
     httpd.serve_forever()
 
@@ -153,3 +161,5 @@ if __name__ == "__main__":
         run(port=int(argv[1]))
     else:
         run()
+
+threading.Thread(target_loop=MatchNotifier.run()).start()

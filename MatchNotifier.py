@@ -52,8 +52,10 @@ def postMessage(main):
         print('Webhook failed with status code error %s.' % (status_code))
 
 def run():
-    response = TBA.request("/event/%s/matches/simple" % event_key)
-    data = json.loads(response.text)
-    next_match = getNextMatch(data)
-    if next_match is not None and getTimestamp > (next_match["predicted_time"] - 300):
-        postMessage(generateMessage(next_match))
+    while(True): #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
+        if (2485Bot.runNotifier):
+            response = TBA.request("/event/%s/matches/simple" % event_key)
+            data = json.loads(response.text)
+            next_match = getNextMatch(data)
+            if next_match is not None and round(getTimestamp, 1) == round(next_match["predicted_time"], 1) - 300:
+                postMessage(generateMessage(next_match))
