@@ -13,22 +13,22 @@ def getTimestamp():
     return time.time()
 
 def getNextMatch(data):
-    match = data[0]
     for item in data:
 	print item["predicted_time"]
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
-            match = item
-            break
-    return match
+            return item
+
 
 def generateMessage(next_match):
     if 'frc2485' in next_match["alliances"]["blue"]["team_keys"]:
         alliance = "blue"
     else:
         alliance = "red"
-    output = "Team 2485 will be in match " + next_match["match_number"]
+    output = "Team 2485 will be in match " + str(next_match["match_number"])
     + " soon on the " + alliance + " alliance. "
     output += phrases[random.randint(0, phrases.length())]
+    print output
+    return output
 
 def postMessage(webhook_url, main):
     url = os.environ[webhook_url]
