@@ -19,7 +19,6 @@ def getNextMatch(data):
     for item in data:
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
             return data[item]
-    return data[0]
 
 
 def generateMessage(next_match):
@@ -28,7 +27,7 @@ def generateMessage(next_match):
     else:
         alliance = "red"
     output = "Team 2485 will be in match " + str(next_match["match_number"]) + " soon on the " + alliance + " alliance. "
-    output += phrases[random.randint(0, phrases.length())]
+    output += phrases[random.randint(0, len(phrases)-1)]
     print output
     return output
 
