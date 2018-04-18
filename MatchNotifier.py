@@ -14,7 +14,7 @@ def getTimestamp():
 
 def getNextMatch(data):
     for item in data:
-	print item["predicted_time"]
+        print item["predicted_time"]
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
             return item
 
@@ -49,5 +49,5 @@ def postMessage(webhook_url, main):
 response = TBA.request("/event/%s/matches/simple" % event_key)
 data = json.loads(response.text)
 next_match = getNextMatch(data)
-if getTimestamp > (next_match["predicted_time"] - 300):
+if "predicted_time" in next_match and getTimestamp > (next_match["predicted_time"] - 300):
     postMessage(webhook_url, generateMessage(next_match))
