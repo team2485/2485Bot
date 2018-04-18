@@ -52,6 +52,6 @@ def postMessage(webhook_url, main):
 def run():
     response = TBA.request("/event/%s/matches/simple" % event_key)
     data = json.loads(response.text)
-    next_match = getNextMatch()
+    next_match = getNextMatch(data)
     if "predicted_time" in next_match and getTimestamp > (next_match["predicted_time"] - 300):
         postMessage(webhook_url, generateMessage(next_match))
