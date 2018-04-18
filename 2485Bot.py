@@ -4,6 +4,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
+import MatchNotifier
 
 
 def do_message(channel, message):
