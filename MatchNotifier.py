@@ -36,15 +36,14 @@ def postMessage(webhook_url, main):
     }
 
     r = requests.post(url, data=json.dumps(payload))
+    status_code = r.status_code
 
-status_code = r.status_code
-
-	# Check the status code of the respond you receive from Slack.
-	# If it's an error, flash a message about it at the bottom of the page.
-	if status_code == 200:
-		print('Webhook succeeded with status code 200')
-	else:
-		print('Webhook failed with status code error %s.' % (status_code))
+# Check the status code of the respond you receive from Slack.
+# If it's an error, flash a message about it at the bottom of the page.
+    if status_code == 200:
+        print('Webhook succeeded with status code 200')
+    else:
+        print('Webhook failed with status code error %s.' % (status_code))        
 
 response = TBA.request("/event/%s/matches/simple" % event_key)
 data = json.loads(response.text)
