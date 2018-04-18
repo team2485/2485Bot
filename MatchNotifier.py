@@ -13,6 +13,7 @@ def getTimestamp():
     return time.time()
 
 def getNextMatch(data):
+    match = data[0]
     for item in data:
 	print item["predicted_time"]
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
