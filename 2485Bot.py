@@ -43,7 +43,7 @@ def getCommand(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
 
 class S(BaseHTTPRequestHandler):
-    CHANNEL_ID = 'CA3188ZFC'
+    CHANNEL_ID = 'C9X66KH5J' #champs-2018
 
     def _set_headers(self):
         self.send_response(200)
