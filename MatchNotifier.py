@@ -8,14 +8,17 @@ from TheBlueAlliance import TBA
 
 
 
-webhook_url = "https://hooks.slack.com/services/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"
+#webhook_url = "https://hooks.slack.com/services/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"
+webhook_url = "https://hooks.slack.com/services/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"
+#event_key = '2018gal'
 event_key = '2018casd'
-phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!", ""]
+phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!", "Warlorda!", "I need six eggs!", "Go :logo:!"]
 
 def getTimestamp():
     return time.time()
 
 def getNextMatch(data):
+    return data[0]
     for item in data:
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
             return data[item]
@@ -31,7 +34,7 @@ def generateMessage(next_match):
     print output
     return output
 
-def postMessage(webhook_url, main):
+def postMessage(main):
     url = os.environ[webhook_url]
     payload = {
         'text': main
@@ -52,4 +55,4 @@ def run():
     data = json.loads(response.text)
     next_match = getNextMatch(data)
     if next_match is not None and getTimestamp > (next_match["predicted_time"] - 300):
-        postMessage(webhook_url, generateMessage(next_match))
+        postMessage(generateMessage(next_match))

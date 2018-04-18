@@ -64,9 +64,7 @@ class S(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         post_data = self.rfile.read(content_length)  # <--- Gets the data itself
         print(post_data)
-        event = "gal"
-        year = datetime.datetime.now().year
-        event_key = str(year) + event
+        event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
         if "channel_created" in post_data:
