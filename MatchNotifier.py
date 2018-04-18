@@ -14,6 +14,7 @@ def getTimestamp():
 
 def getNextMatch(data):
     for item in data:
+	print item["predicted_time"]
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
             next_match = item
             break
@@ -35,7 +36,8 @@ def postMessage(webhook_url, main):
     }
 
     r = requests.post(url, data=json.dumps(payload))
-	status_code = r.status_code
+
+status_code = r.status_code
 
 	# Check the status code of the respond you receive from Slack.
 	# If it's an error, flash a message about it at the bottom of the page.
