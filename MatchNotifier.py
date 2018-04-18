@@ -7,8 +7,6 @@ import requests
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
 
-
-
 #webhook_url = "https://hooks.slack.com/services/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"
 webhook_url = "https://hooks.slack.com/services/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"
 #event_key = '2018gal'
@@ -53,7 +51,7 @@ def postMessage(main):
 
 def run():
     while(True): #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
-        if (2485Bot.runNotifier):
+        if (runNotifier):
             response = TBA.request("/event/%s/matches/simple" % event_key)
             data = json.loads(response.text)
             next_match = getNextMatch(data)

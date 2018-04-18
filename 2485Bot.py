@@ -7,8 +7,6 @@ from TheBlueAlliance import TBA
 import MatchNotifier
 import threading
 
-global runNotifier = False
-
 def do_message(channel, message):
     sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
     print('Posting message to channel ' + channel + ' with text: ' + message)
