@@ -165,11 +165,15 @@ def run(server_class=HTTPServer, handler_class=S, port=90):
 if __name__ == "__main__":
     from sys import argv
     print('name == main')
-    if len(argv) == 2:
-        slashThread = threading.Thread(target=run(port=int(argv[1])))
-
+    if len(argv) ==  2:
+	run(port=int(argv[1]))
     else:
-       	slashThread = threading.Thread(target=run())
-    notifierThread = threading.Thread(target=MatchNotifier.run())
-    slashThread.start()
-    notifierThread.start()
+	run()
+    #if len(argv) == 2:
+    #    slashThread = threading.Thread(target=run(port=int(argv[1])))
+
+    #else:
+    #   	slashThread = threading.Thread(target=run())
+    # notifierThread = threading.Thread(target=MatchNotifier.run())
+    #slashThread.start()
+    #notifierThread.start()
