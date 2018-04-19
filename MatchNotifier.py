@@ -3,6 +3,7 @@ import datetime
 import time
 import random
 import os
+import signal
 import requests
 from slackclient import SlackClient
 from TheBlueAlliance import TBA
@@ -63,19 +64,24 @@ def setRunNotifier(set):
     print("runNotifier set to " + str(set))
     runNotifier = set
 
+def signal_handler(signal, frame):
+    global interrupted
+    interrupted = True
+
 def run():
+    signal.signal(signal.SIGINT, signal_handler)
+    interrupted = False
     print('success!')
     while True: #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
-	try:
 	    print(getTimestamp())
-            if (getRunNotifier()):
-                response = TBA.request("/event/%s/matches/simple" % event_key)
-                data = json.loads(response.text)
-                next_match = getNextMatch(data)
-            	if next_match is not None and getTimestamp() > next_match["predicted_time"] - 300 and getTimestamp() < next_match["predicted_time"] - 200:
-                    postMessage(generateMessage(next_match))
-                    time.sleep(100)
-	    time.sleep(1)
-    	except KeyboardInterrupt:
-	    print('interrupted')
-	    break
+        if (getRunNotifier()):
+            response = TBA.request("/event/%s/matches/simple" % event_key)
+            data = json.loads(response.text)
+            next_match = getNextMatch(data)
+        	if next_match is not None and getTimestamp() > next_match["predicted_time"] - 300 and getTimestamp() < next_match["predicted_time"] - 200:
+                postMessage(generateMessage(next_match))
+                time.sleep(100)
+        time.sleep(1)
+        if interrupted:
+            print("interrupted")
+            break
