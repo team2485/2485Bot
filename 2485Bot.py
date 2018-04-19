@@ -66,7 +66,7 @@ class S(BaseHTTPRequestHandler):
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
-        CHANNEL_ID = post_data['channel_id']
+        CHANNEL_ID = post_data[post_data.index('&channel_id=')+12:post_data.index('&channel_name=')]
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
