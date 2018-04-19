@@ -25,7 +25,7 @@ def clear_b(input):
     else:
         return input
 
-def list_matches(data, request, comp_level="qm"):
+def list_matches(data, request, comp_level='qm'):
     ans = ""
     length = len(data)
     for item in data:
@@ -68,6 +68,7 @@ class S(BaseHTTPRequestHandler):
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
         CHANNEL_ID = post_data[post_data.index('&channel_id=')+12:post_data.index('&channel_name=')]
+        text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
@@ -99,11 +100,9 @@ class S(BaseHTTPRequestHandler):
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
             data = json.loads(response.text)
-            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
-            comp_level = "qm" if text == '' else text
             if "match_number" in data:
                 self.wfile.write('Team 2485 is in matches ')
-                self.wfile.write(list_matches(data, "match_number", comp_level))
+                self.wfile.write(list_matches(data, "match_number", data[0]["comp_level"]))
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
@@ -115,10 +114,8 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
-            comp_level = "qm" if text == '' else text
             if "match_number" in data:
-                do_message(CHANNEL_ID, list_matches(data, "match_number", comp_level))
+                do_message(CHANNEL_ID, list_matches(data, "match_number", data[0]["comp_level"]))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
