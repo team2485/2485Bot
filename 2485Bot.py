@@ -160,13 +160,13 @@ def run(server_class=HTTPServer, handler_class=S, port=90):
     httpd = server_class(server_address, handler_class)
     print ('Starting httpd...')
     httpd.serve_forever()
-    threading.Thread(target_loop=MatchNotifier.run()).start()
 
 if __name__ == "__main__":
     from sys import argv
 
     if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+        start_new_thread(run(port=int(argv[1])))
 
+    else:
+        start_new_thread(run())
+    start_new_thread(MatchNotifier.run()))
