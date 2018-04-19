@@ -114,7 +114,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                do_message(CHANNEL_ID, list_matches(data, "match_number")
+                do_message(CHANNEL_ID, list_matches(data, "match_number"))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
