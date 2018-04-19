@@ -63,5 +63,6 @@ def run():
             response = TBA.request("/event/%s/matches/simple" % event_key)
             data = json.loads(response.text)
             next_match = getNextMatch(data)
-            if next_match is not None and round(getTimestamp, 1) == round(next_match["predicted_time"], 1) - 300:
+            print(getTimestamp)
+            if next_match is not None and round(getTimestamp, 0) == round(next_match["predicted_time"], 0) - 300:
                 postMessage(generateMessage(next_match))
