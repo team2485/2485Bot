@@ -155,7 +155,6 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write('Invalid parameter.')
 
-
 def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
@@ -169,7 +168,7 @@ if __name__ == "__main__":
         slashThread = threading.Thread(target=run(port=int(argv[1])))
 
     else:
-       	slashThread = threading.Thread(target=run
+       	slashThread = threading.Thread(target=run)
     notifierThread = threading.Thread(target=MatchNotifier.run)
     slashThread.start()
     notifierThread.start()

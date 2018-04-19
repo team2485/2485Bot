@@ -65,13 +65,17 @@ def setRunNotifier(set):
 
 def run():
     print('success!')
-    while(True): #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
-	print(getTimeStamp())
-	if (getRunNotifier()):
-            response = TBA.request("/event/%s/matches/simple" % event_key)
-            data = json.loads(response.text)
-            next_match = getNextMatch(data)
-            if next_match is not None and getTimestamp() > next_match["predicted_time"] - 300 and getTimestamp() < next_match["predicted_time"] - 200:
-                postMessage(generateMessage(next_match))
-                time.sleep(100)
-	time.sleep(1)
+    while True: #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
+	try:
+	    print(getTimestamp())
+            if (getRunNotifier()):
+                response = TBA.request("/event/%s/matches/simple" % event_key)
+                data = json.loads(response.text)
+                next_match = getNextMatch(data)
+            	if next_match is not None and getTimestamp() > next_match["predicted_time"] - 300 and getTimestamp() < next_match["predicted_time"] - 200:
+                    postMessage(generateMessage(next_match))
+                    time.sleep(100)
+	    time.sleep(1)
+    	except KeyboardInterrupt:
+	    print('interrupted')
+	    break
