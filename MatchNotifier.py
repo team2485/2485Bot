@@ -9,8 +9,8 @@ from TheBlueAlliance import TBA
 
 runNotifier = False
 
-webhook_url = "https://hooks.slack.com/services/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"
-#webhook_url = "https://hooks.slack.com/services/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"
+#webhook_url = "https://hooks.slack.com/services/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"
+webhook_url = "https://hooks.slack.com/services/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"
 event_key = '2018gal'
 #event_key = '2018casd'
 phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!", "Warlorda!", "I need six eggs!", "Go :logo:!"]
