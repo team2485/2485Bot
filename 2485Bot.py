@@ -100,7 +100,7 @@ class S(BaseHTTPRequestHandler):
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
             data = json.loads(response.text)
-            if "match_number" in data:
+            if len(data) > 0:
                 self.wfile.write('Team 2485 is in matches ')
                 self.wfile.write(list_matches(data, "match_number", data[0]["comp_level"]))
             else:
@@ -114,7 +114,7 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            if "match_number" in data:
+            if len(data) > 0:
                 do_message(CHANNEL_ID, list_matches(data, "match_number", data[0]["comp_level"]))
                 self.wfile.write('Success!')
             else:
