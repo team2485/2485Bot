@@ -6,6 +6,7 @@ from slackclient import SlackClient
 from TheBlueAlliance import TBA
 import MatchNotifier
 import threading
+from threading import Thread
 
 def do_message(channel, message):
     sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
@@ -163,10 +164,12 @@ def run(server_class=HTTPServer, handler_class=S, port=90):
 
 if __name__ == "__main__":
     from sys import argv
-
+    print('name == main')
     if len(argv) == 2:
-        start_new_thread(run(port=int(argv[1])))
+        slashThread = threading.Thread(target=run(port=int(argv[1])))
 
     else:
-        start_new_thread(run())
-    start_new_thread(MatchNotifier.run()))
+       	slashThread = threading.Thread(target=run())
+    notifierThread = threading.Thread(MatchNotifier.run())
+    slashThread.start()
+    notifierThread.start()
