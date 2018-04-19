@@ -169,7 +169,7 @@ if __name__ == "__main__":
         slashThread = threading.Thread(target=run(port=int(argv[1])))
 
     else:
-       	slashThread = threading.Thread(target=run())
-    notifierThread = threading.Thread(MatchNotifier.run())
+       	slashThread = threading.Thread(target=run
+    notifierThread = threading.Thread(target=MatchNotifier.run)
     slashThread.start()
     notifierThread.start()
