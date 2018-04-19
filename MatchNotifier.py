@@ -9,8 +9,9 @@ from TheBlueAlliance import TBA
 
 runNotifier = False
 
-#webhook_url = "https://hooks.slack.com/services/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"
-webhook_url = "https://hooks.slack.com/services/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"
+#webhook_url = "https://hooks.slack.com/services/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" #champs-2018
+webhook_url = "https://hooks.slack.com/services/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" #houstonwehaveaproblem
+#webhook_url = "https://hooks.slack.com/services/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" #rank
 event_key = '2018gal'
 #event_key = '2018casd'
 phrases = ["Dylan, don't forget the battery.", "Good luck!", "We are WARLords!", "Warlorda!", "I need six eggs!", "Go :logo:!"]
@@ -19,18 +20,22 @@ def getTimestamp():
     return time.time()
 
 def getNextMatch(data):
-    return data[0]
-    for item in data:
+    for item in data.sort(key=extract_time, reverse=true):
         if item["predicted_time"] > getTimestamp() and "winning_alliance" not in item: #checks if match has already happened
             return data[item]
 
+def extract_time(json):
+    try:
+        return json['predicted_time']
+    except KeyError:
+        return 0
 
 def generateMessage(next_match):
     if 'frc2485' in next_match["alliances"]["blue"]["team_keys"]:
         alliance = "blue"
     else:
         alliance = "red"
-    output = "Team 2485 will be in match " + str(next_match["match_number"]) + " soon on the " + alliance + " alliance. "
+    output = "Coming up: Team 2485 will be in match " + str(next_match["match_number"]) + " on the " + alliance + " alliance. "
     output += phrases[random.randint(0, len(phrases)-1)]
     print output
     return output
@@ -63,6 +68,7 @@ def run():
             response = TBA.request("/event/%s/matches/simple" % event_key)
             data = json.loads(response.text)
             next_match = getNextMatch(data)
-            print(getTimestamp)
-            if next_match is not None and round(getTimestamp, 0) == round(next_match["predicted_time"], 0) - 300:
+            print(getTimestamp())
+            if next_match is not None and getTimestamp() > next_match["predicted_time"] - 300 and getTimestamp() < next_match["predicted_time"] - 200:
                 postMessage(generateMessage(next_match))
+                time.sleep(100)
