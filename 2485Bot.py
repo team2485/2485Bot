@@ -113,8 +113,11 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            do_message(CHANNEL_ID, list_entries(data, "match_number"))
-            self.wfile.write('Success!')
+            if "match_number" in data:
+                do_message(CHANNEL_ID, list_entries(data, "match_number"))
+                self.wfile.write('Success!')
+            else:
+                self.wfile.write("Matches have not been posted yet.")
             print(data)
         elif getCommand(post_data, 'announcerank'):
             response = TBA.request("/event/%s/status" % event_key)
@@ -138,10 +141,11 @@ class S(BaseHTTPRequestHandler):
             do_message(CHANNEL_ID, 'WARLORDA!')
             self.wfile.write('Success!')
         elif getCommand(post_data, '-turn-match-notifier'):
-            if post_data['text'] == 'on':
+            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
+            if text == 'on':
                 MatchNotifier.setRunNotifier(True)
                 self.wfile.write('Match Notifier is on.')
-            elif post_data['text'] == 'off':
+            elif text == 'off':
                 MatchNotifier.setRunNotifier(False)
                 self.wfile.write('Match Notifier is off.')
             else:
