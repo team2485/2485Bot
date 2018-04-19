@@ -34,7 +34,7 @@ def list_matches(data, request):
     ansList.sort()
     for x in ansList:
         index = ansList.index(x)
-
+        ans += x
         if index == (length - 2):
             ans += ', and '
         elif index == (length - 1):
