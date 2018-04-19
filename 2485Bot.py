@@ -37,7 +37,7 @@ def list_matches(data, request):
         elif index == (length - 1):
             ans += '.'
         else:
-            ans += ", "
+            ans += ', '
     return ans
 
 def getCommand(post_data, command):
@@ -101,7 +101,7 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             if len(data) > 0:
                 self.wfile.write('Team 2485 is in matches ')
-                self.wfile.write(list_matches(data, "match_number")
+                self.wfile.write(list_matches(data, "match_number"))
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
