@@ -25,19 +25,20 @@ def clear_b(input):
     else:
         return input
 
-def list_entries(data, request):
+def list_matches(data, request, comp_level="qm"):
     ans = ""
     length = len(data)
     for item in data:
-        ans += str(item[request])
-        index = data.index(item)
+        if item['comp_level'] == comp_level:
+            ans += str(item[request])
+            index = data.index(item)
 
-        if index == (length - 2):
-            ans += ', and '
-        elif index == (length - 1):
-            ans += '.'
-        else:
-            ans += ", "
+            if index == (length - 2):
+                ans += ', and '
+            elif index == (length - 1):
+                ans += '.'
+            else:
+                ans += ", "
     return ans
 
 def getCommand(post_data, command):
@@ -98,10 +99,11 @@ class S(BaseHTTPRequestHandler):
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
             data = json.loads(response.text)
-
+            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
+            comp_level = "qm" if text == '' else text
             if "match_number" in data:
                 self.wfile.write('Team 2485 is in matches ')
-                self.wfile.write(list_entries(data, "match_number"))
+                self.wfile.write(list_matches(data, "match_number", comp_level))
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
@@ -113,8 +115,10 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
+            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
+            comp_level = "qm" if text == '' else text
             if "match_number" in data:
-                do_message(CHANNEL_ID, list_entries(data, "match_number"))
+                do_message(CHANNEL_ID, list_matches(data, "match_number", comp_level))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
