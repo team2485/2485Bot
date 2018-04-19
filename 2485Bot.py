@@ -29,12 +29,12 @@ def list_matches(data, request):
     ans = ""
     ansList = []
     for item in data:
-        ansList.append(str(item[request]))
+        ansList.append(item[request])
     length = len(ansList)
     ansList.sort()
     for x in ansList:
         index = ansList.index(x)
-        ans += x
+        ans += str(x)
         if index == (length - 2):
             ans += ', and '
         elif index == (length - 1):
