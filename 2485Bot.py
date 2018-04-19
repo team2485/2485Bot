@@ -27,10 +27,13 @@ def clear_b(input):
 
 def list_matches(data, request):
     ans = ""
-    length = len(data)
+    ansList = []
     for item in data:
-        ans += str(item[request])
-        index = data.index(item)
+        ansList.append(str(item[request]))
+    length = len(ansList)
+    ansList.sort()
+    for x in ansList:
+        index = ansList.index(x)
 
         if index == (length - 2):
             ans += ', and '
