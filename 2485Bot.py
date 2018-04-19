@@ -25,20 +25,19 @@ def clear_b(input):
     else:
         return input
 
-def list_matches(data, request, comp_level='qm'):
+def list_matches(data, request):
     ans = ""
     length = len(data)
     for item in data:
-        if item['comp_level'] == comp_level:
-            ans += str(item[request])
-            index = data.index(item)
+        ans += str(item[request])
+        index = data.index(item)
 
-            if index == (length - 2):
-                ans += ', and '
-            elif index == (length - 1):
-                ans += '.'
-            else:
-                ans += ", "
+        if index == (length - 2):
+            ans += ', and '
+        elif index == (length - 1):
+            ans += '.'
+        else:
+            ans += ", "
     return ans
 
 def getCommand(post_data, command):
@@ -102,7 +101,7 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             if len(data) > 0:
                 self.wfile.write('Team 2485 is in matches ')
-                self.wfile.write(list_matches(data, "match_number", data[0]["comp_level"]))
+                self.wfile.write(list_matches(data, "match_number")
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
@@ -115,7 +114,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                do_message(CHANNEL_ID, list_matches(data, "match_number", data[0]["comp_level"]))
+                do_message(CHANNEL_ID, list_matches(data, "match_number")
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
