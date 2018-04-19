@@ -63,8 +63,9 @@ def setRunNotifier(set):
     runNotifier = set
 
 def run():
+    print('success!')
     while(True): #YOU HAVE TO FIX THIS BECAUSE THIS IS A BAD, BAD WAY OF DOING THINGS
-        if (getRunNotifier()):
+	if (getRunNotifier()):
             response = TBA.request("/event/%s/matches/simple" % event_key)
             data = json.loads(response.text)
             next_match = getNextMatch(data)

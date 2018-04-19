@@ -158,8 +158,9 @@ class S(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print 'Starting httpd...'
+    print ('Starting httpd...')
     httpd.serve_forever()
+    threading.Thread(target_loop=MatchNotifier.run()).start()
 
 if __name__ == "__main__":
     from sys import argv
@@ -169,4 +170,3 @@ if __name__ == "__main__":
     else:
         run()
 
-threading.Thread(target_loop=MatchNotifier.run()).start()
