@@ -117,11 +117,13 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
-            if len(data) > 0:
-                do_message(CHANNEL_ID, list_matches(data, "match_number"))
-                self.wfile.write('Success!')
-            else:
-                self.wfile.write("Matches have not been posted yet.")
+            # if len(data) > 0:
+            #     do_message(CHANNEL_ID, list_matches(data, "match_number"))
+            #     self.wfile.write('Success!')
+            # else:
+            #     self.wfile.write("Matches have not been posted yet.")
+
+            do_message(CHANNEL_ID, "Thanks to @dj-nelson and @nathan-sariowan for making me!")
             print(data)
         elif getCommand(post_data, 'announcerank'):
             response = TBA.request("/event/%s/status" % event_key)
