@@ -1,12 +1,12 @@
 import json
-import datetime
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
+
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from slackclient import SlackClient
-from TheBlueAlliance import TBA
+
 import MatchNotifier
-import threading
-from threading import Thread
+from TheBlueAlliance import TBA
+
 
 def do_message(channel, message):
     sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
@@ -26,6 +26,7 @@ def clear_b(input):
     else:
         return input
 
+
 def list_matches(data, request):
     ans = ""
     ansList = []
@@ -44,8 +45,10 @@ def list_matches(data, request):
             ans += ', '
     return ans
 
+
 def getCommand(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
+
 
 class S(BaseHTTPRequestHandler):
 
@@ -70,8 +73,8 @@ class S(BaseHTTPRequestHandler):
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
-        CHANNEL_ID = post_data[post_data.index('&channel_id=')+12:post_data.index('&channel_name=')]
-        text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
+        CHANNEL_ID = post_data[post_data.index('&channel_id=') + 12:post_data.index('&channel_name=')]
+        text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
@@ -147,7 +150,7 @@ class S(BaseHTTPRequestHandler):
             do_message(CHANNEL_ID, 'WARLORDA!')
             self.wfile.write('Success!')
         elif getCommand(post_data, '-turn-match-notifier'):
-            text = post_data[post_data.index('&text=')+6:post_data.index('&response_url=')]
+            text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
             if text == 'on':
                 MatchNotifier.setRunNotifier(True)
                 self.wfile.write('Match Notifier is on.')
@@ -161,21 +164,23 @@ class S(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=S, port=90):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print ('Starting httpd...')
+    print('Starting httpd...')
     httpd.serve_forever()
+
 
 if __name__ == "__main__":
     from sys import argv
+
     print('name == main')
-    if len(argv) ==  2:
-	run(port=int(argv[1]))
+    if len(argv) == 2:
+        run(port=int(argv[1]))
     else:
-	run()
-    #if len(argv) == 2:
+        run()
+    # if len(argv) == 2:
     #    slashThread = threading.Thread(target=run(port=int(argv[1])))
 
-    #else:
+    # else:
     #   	slashThread = threading.Thread(target=run())
     # notifierThread = threading.Thread(target=MatchNotifier.run())
-    #slashThread.start()
-    #notifierThread.start()
+    # slashThread.start()
+    # notifierThread.start()

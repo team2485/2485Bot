@@ -1,4 +1,4 @@
-#!c:\users\slurp\pycharmprojects\2485bot\venv\scripts\python.exe
+#!C:\Users\slurp\PycharmProjects\2485Bot\venv\Scripts\python.exe
 
 import argparse
 import code
