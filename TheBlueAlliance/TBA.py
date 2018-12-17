@@ -1,8 +1,9 @@
 import requests
+import os
 
 
 def request(request):
-    headers = {'X-TBA-Auth-Key': '69Ikp0hcU0yELOAOsk7cMVH8W1gQgKhtlk8NW6xYm2WDdtLEVZhrx65xCBBr54pd'}
+    headers = {'X-TBA-Auth-Key': os.environ['TBA_API_TOKEN']}
     print("URL ->>> " + ("http://thebluealliance.com/api/v3/team/frc2485%s" % request))
     return requests.get("http://thebluealliance.com/api/v3/team/frc2485%s" % request,
                         headers=headers)
