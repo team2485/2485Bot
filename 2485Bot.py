@@ -18,6 +18,15 @@ def do_message(channel, message):
     )
 
 
+def do_invite(uid, channel):
+    sc = SlackClient('xoxb-')
+    sc.api_call('channels.invite',
+                channel=channel,
+                user=uid,
+                pretty=1)
+    exit(1)
+
+
 def clear_b(input):
     if "<b>" in input:
         return clear_b(input[:input.index('<b>')] + input[input.index('<b>') + 3:])
@@ -29,13 +38,13 @@ def clear_b(input):
 
 def list_matches(data, request):
     ans = ""
-    ansList = []
+    ans_list = []
     for item in data:
-        ansList.append(item[request])
-    length = len(ansList)
-    ansList.sort()
-    for x in ansList:
-        index = ansList.index(x)
+        ans_list.append(item[request])
+    length = len(ans_list)
+    ans_list.sort()
+    for x in ans_list:
+        index = ans_list.index(x)
         ans += str(x)
         if index == (length - 2):
             ans += ', and '
@@ -46,7 +55,7 @@ def list_matches(data, request):
     return ans
 
 
-def getCommand(post_data, command):
+def get_command(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
 
 
@@ -73,22 +82,21 @@ class S(BaseHTTPRequestHandler):
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
-        CHANNEL_ID = post_data[post_data.index('&channel_id=') + 12:post_data.index('&channel_name=')]
+        channel_id = post_data[post_data.index('&channel_id=') + 12:post_data.index('&channel_name=')]
         text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
-            do_message(post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')], 'FIRST!!1!')
+            do_invite('U0AK9DFK3', post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             self.wfile.write(200)
         elif "channel_unarchive" in post_data:
-
+            do_invite('U0AK9DFK3', post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')])
-            do_message(post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')], 'FIRST!!1!')
             self.wfile.write(200)
         elif "challenge" in post_data:
             print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
-        elif getCommand(post_data, 'rank'):
+        elif get_command(post_data, 'rank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -99,7 +107,7 @@ class S(BaseHTTPRequestHandler):
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
-        elif getCommand(post_data, 'matches'):
+        elif get_command(post_data, 'matches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -112,7 +120,7 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif getCommand(post_data, 'announcematches'):
+        elif get_command(post_data, 'announcematches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -121,12 +129,12 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                do_message(CHANNEL_ID, list_matches(data, "match_number"))
+                do_message(channel_id, list_matches(data, "match_number"))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif getCommand(post_data, 'announcerank'):
+        elif get_command(post_data, 'announcerank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -134,20 +142,20 @@ class S(BaseHTTPRequestHandler):
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                do_message(CHANNEL_ID, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                do_message(channel_id, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
-                do_message(CHANNEL_ID, clear_b(data["overall_status_str"]))
+                do_message(channel_id, clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
-        elif getCommand(post_data, 'init-cheer'):
-            do_message(CHANNEL_ID, 'WE ARE...')
+        elif get_command(post_data, 'init-cheer'):
+            do_message(channel_id, 'WE ARE...')
             self.wfile.write('Success!')
-        elif getCommand(post_data, 'cheer'):
-            do_message(CHANNEL_ID, 'WARLORDS!')
+        elif get_command(post_data, 'cheer'):
+            do_message(channel_id, 'WARLORDS!')
             self.wfile.write('Success!')
-        elif getCommand(post_data, 'cheera'):
-            do_message(CHANNEL_ID, 'WARLORDA!')
+        elif get_command(post_data, 'cheera'):
+            do_message(channel_id, 'WARLORDA!')
             self.wfile.write('Success!')
-        elif getCommand(post_data, '-turn-match-notifier'):
+        elif get_command(post_data, '-turn-match-notifier'):
             text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
             if text == 'on':
                 MatchNotifier.setRunNotifier(True)
