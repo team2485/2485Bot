@@ -44,12 +44,10 @@ def get_slack_users():
     return sc.api_call("users.list")['members']
 
 def do_invite(uid, channel):
-    sc = SlackClient('xoxb-')
     sc.api_call('channels.invite',
                 channel=channel,
                 user=uid,
                 pretty=1)
-    exit(1)
 
 
 def clear_b(input):
@@ -263,7 +261,7 @@ def send_reminder():
 def run_scheduler():
     send_reminder()
 
-    # schedule.every().day.at(remind_time).do(send_reminder)
+    #schedule.every().day.at(remind_time).do(send_reminder)
 
     poll_scheduler()
 
@@ -283,14 +281,14 @@ def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
 
 def run(port=90):
 
-    # scheduler_thread = multiprocessing.Process(target=run_scheduler, args=())
+    #scheduler_thread = multiprocessing.Process(target=run_scheduler, args=())
 
     http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
 
     #idk  why this works but eh
     http_thread.daemon = True
 
-    # http_thread.start()
+    http_thread.start()
 
     run_scheduler()
 
