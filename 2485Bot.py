@@ -1,15 +1,36 @@
 import json
+import os
 from time import sleep
+import schedule
+import time
+import datetime
+import multiprocessing
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 from slackclient import SlackClient
 
-import MatchNotifier
 from TheBlueAlliance import TBA
 
+import oauth2client
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 
-def do_message(channel, message):
-    sc = SlackClient('xoxb-335481584838-ZaR0QmeauYp7aQfMVaZlvKj2')
+from sys import argv
+
+#sample sheet
+SHEET_URL = 'https://docs.google.com/spreadsheets/d/1oChCUMXV777wrI3ixMhWpksKlqQd2co0U5gqvMa2nGI/edit#gid=0'
+
+SHEET_NAME = "Sheet1"
+
+REMIND_TIME = "18:00"
+
+SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
+sc = SlackClient(SLACK_TOKEN)
+
+
+def post_message_to_slack(channel, message):
     print('Posting message to channel ' + channel + ' with text: ' + message)
     sc.api_call(
         "chat.postMessage",
@@ -17,6 +38,8 @@ def do_message(channel, message):
         text=message
     )
 
+def get_slack_users():
+    return sc.api_call("users.list")['members']
 
 def do_invite(uid, channel):
     sc = SlackClient('xoxb-')
@@ -54,8 +77,7 @@ def list_matches(data, request):
             ans += ', '
     return ans
 
-
-def get_command(post_data, command):
+def parse_command(post_data, command):
     return post_data[post_data.index('command=%2F') + 11:post_data.index('&text=')] == command
 
 
@@ -96,7 +118,7 @@ class S(BaseHTTPRequestHandler):
         elif "challenge" in post_data:
             print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
             self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
-        elif get_command(post_data, 'rank'):
+        elif parse_command(post_data, 'rank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -107,7 +129,7 @@ class S(BaseHTTPRequestHandler):
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
-        elif get_command(post_data, 'matches'):
+        elif parse_command(post_data, 'matches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -120,7 +142,7 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif get_command(post_data, 'announcematches'):
+        elif parse_command(post_data, 'announcematches'):
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -129,12 +151,12 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                do_message(channel_id, list_matches(data, "match_number"))
+                post_message_to_slack(channel_id, list_matches(data, "match_number"))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif get_command(post_data, 'announcerank'):
+        elif parse_command(post_data, 'announcerank'):
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -142,51 +164,139 @@ class S(BaseHTTPRequestHandler):
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                do_message(channel_id, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                post_message_to_slack(channel_id, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
-                do_message(channel_id, clear_b(data["overall_status_str"]))
+                post_message_to_slack(channel_id, clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
-        elif get_command(post_data, 'init-cheer'):
-            do_message(channel_id, 'WE ARE...')
+        elif parse_command(post_data, 'init-cheer'):
+            post_message_to_slack(channel_id, 'WE ARE...')
             self.wfile.write('Success!')
-        elif get_command(post_data, 'cheer'):
-            do_message(channel_id, 'WARLORDS!')
+        elif parse_command(post_data, 'cheer'):
+            post_message_to_slack(channel_id, 'WARLORDS!')
             self.wfile.write('Success!')
-        elif get_command(post_data, 'cheera'):
-            do_message(channel_id, 'WARLORDA!')
+        elif parse_command(post_data, 'cheera'):
+            post_message_to_slack(channel_id, 'WARLORDA!')
             self.wfile.write('Success!')
-        elif get_command(post_data, '-turn-match-notifier'):
-            text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
-            if text == 'on':
-                MatchNotifier.setRunNotifier(True)
-                self.wfile.write('Match Notifier is on.')
-            elif text == 'off':
-                MatchNotifier.setRunNotifier(False)
-                self.wfile.write('Match Notifier is off.')
-            else:
-                self.wfile.write('Invalid parameter.')
 
 
-def run(server_class=HTTPServer, handler_class=S, port=90):
+def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
+    scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+    client = gspread.authorize(creds)
+
+    spreadsheet = client.open_by_url(url)
+
+    sheet = spreadsheet.worksheet(sheet)
+
+    # Extract and print all of the values
+    sheet_values = sheet.get_all_values()
+    print(sheet_values)
+
+    return sheet_values
+
+def get_date(days_from_now=0):
+
+    now = datetime.datetime.now()
+
+    return str(now.month) + "/" + (str(now.day + days_from_now))
+
+def get_people_from_sheet(date=get_date(3), sheet=SHEET_NAME):
+    sheet_values = get_sheet(sheet=sheet)
+
+    date_col = -1
+    date_row = -1
+
+    people = []
+
+    # find location of date
+    for row, arr in enumerate(sheet_values):
+        for col, val in enumerate(arr):
+            if date in val:
+                date_col = col
+                date_row = row
+
+    is_a_name = True
+    name_row = date_row + 1
+
+    while is_a_name and name_row < len(sheet_values):
+        val = sheet_values[name_row][date_col]
+        if any(char.isdigit() for char in val):
+            is_a_name = False
+        else:
+            people.append(val)
+            name_row += 1
+
+    return people
+
+def send_reminder():
+
+    #move this later
+    days_from_now = 3
+
+    date = get_date(3)
+
+    people = get_people_from_sheet(date=date)
+
+    slack_users = get_slack_users()
+
+    user_ids = {}
+
+    for user in slack_users:
+        name = user["profile"]["real_name_normalized"]
+        if name in people:
+            user_ids[name] = user["id"]
+
+            people.remove(name)
+
+    if len(people) > 0:
+        print("Not found: ", people)
+
+    for key, value in user_ids.items():
+        string = "Hello, " + key.split(' ', 1)[0] + "! This is your friendly 2485Bot reminding you that you are signed up for a shift " + str(days_from_now) + " days from now on " + str(date) + "."
+
+        post_message_to_slack(value, string)
+
+
+def run_scheduler():
+    send_reminder()
+
+    # schedule.every().day.at(remind_time).do(send_reminder)
+
+    poll_scheduler()
+
+def poll_scheduler():
+    schedule.run_pending()
+    time.sleep(1)
+    #recursive loop because recursive loops are fun
+    poll_scheduler()
+
+def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
+
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...')
-    httpd.serve_forever()
+    httpd.serve_forever(poll_interval=0.5)
+
+
+def run(port=90):
+
+    # scheduler_thread = multiprocessing.Process(target=run_scheduler, args=())
+
+    http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
+
+    #idk  why this works but eh
+    http_thread.daemon = True
+
+    # http_thread.start()
+
+    run_scheduler()
 
 
 if __name__ == "__main__":
-    from sys import argv
 
-    print('name == main')
     if len(argv) == 2:
         run(port=int(argv[1]))
     else:
         run()
-    # if len(argv) == 2:
-    #    slashThread = threading.Thread(target=run(port=int(argv[1])))
 
-    # else:
-    #   	slashThread = threading.Thread(target=run())
-    # notifierThread = threading.Thread(target=MatchNotifier.run())
-    # slashThread.start()
-    # notifierThread.start()
