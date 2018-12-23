@@ -18,6 +18,8 @@ import gspread
 
 from sys import argv
 
+#save TBA token as system variable '2485BOT_TBA_API_TOKEN' and slack as '2485BOT_SLACK_API_TOKEN'
+
 #sample sheet
 SHEET_URL = 'https://docs.google.com/spreadsheets/d/1oChCUMXV777wrI3ixMhWpksKlqQd2co0U5gqvMa2nGI/edit#gid=0'
 
@@ -25,7 +27,7 @@ SHEET_NAME = "Sheet1"
 
 REMIND_TIME = "18:00"
 
-SLACK_TOKEN = os.environ['SLACK_TOKEN']
+SLACK_TOKEN = os.environ['2485BOT_SLACK_API_TOKEN']
 
 sc = SlackClient(SLACK_TOKEN)
 
