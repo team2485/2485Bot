@@ -3,6 +3,7 @@ import os
 from time import sleep
 import schedule
 import time
+import datetime
 import multiprocessing
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -17,24 +18,28 @@ import gspread
 
 from sys import argv
 
-spreadsheet_name = "Sample Sheet"
+#sample sheet
+SHEET_URL = 'https://docs.google.com/spreadsheets/d/1oChCUMXV777wrI3ixMhWpksKlqQd2co0U5gqvMa2nGI/edit#gid=0'
 
-sheet_name = "sheet1"
+SHEET_NAME = "Sheet1"
 
-slack_token = os.environ['SLACK_TOKEN']
+REMIND_TIME = "18:00"
+
+SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
+sc = SlackClient(SLACK_TOKEN)
 
 
-sc = SlackClient(slack_token)
-
-remind_time = "18:00"
-
-def post_message(channel, message):
+def post_message_to_slack(channel, message):
     print('Posting message to channel ' + channel + ' with text: ' + message)
     sc.api_call(
         "chat.postMessage",
         channel=channel,
         text=message
     )
+
+def get_slack_users():
+    return sc.api_call("users.list")['members']
 
 def clear_b(input):
     if "<b>" in input:
@@ -95,12 +100,12 @@ class S(BaseHTTPRequestHandler):
         if "channel_created" in post_data:
             print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
             sleep(1)
-            post_message(post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')], 'FIRST!!1!')
+            post_message_to_slack(post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')], 'FIRST!!1!')
             self.wfile.write(200)
         elif "channel_unarchive" in post_data:
 
             print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')])
-            post_message(post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')], 'FIRST!!1!')
+            post_message_to_slack(post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')], 'FIRST!!1!')
             self.wfile.write(200)
         elif "challenge" in post_data:
             print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
@@ -138,7 +143,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                post_message(CHANNEL_ID, list_matches(data, "match_number"))
+                post_message_to_slack(CHANNEL_ID, list_matches(data, "match_number"))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
@@ -151,39 +156,98 @@ class S(BaseHTTPRequestHandler):
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                post_message(CHANNEL_ID, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                post_message_to_slack(CHANNEL_ID, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
-                post_message(CHANNEL_ID, clear_b(data["overall_status_str"]))
+                post_message_to_slack(CHANNEL_ID, clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
         elif parse_command(post_data, 'init-cheer'):
-            post_message(CHANNEL_ID, 'WE ARE...')
+            post_message_to_slack(CHANNEL_ID, 'WE ARE...')
             self.wfile.write('Success!')
         elif parse_command(post_data, 'cheer'):
-            post_message(CHANNEL_ID, 'WARLORDS!')
+            post_message_to_slack(CHANNEL_ID, 'WARLORDS!')
             self.wfile.write('Success!')
         elif parse_command(post_data, 'cheera'):
-            post_message(CHANNEL_ID, 'WARLORDA!')
+            post_message_to_slack(CHANNEL_ID, 'WARLORDA!')
             self.wfile.write('Success!')
 
 
-def get_sheet():
+def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
     scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
     client = gspread.authorize(creds)
 
-    spreadsheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1oChCUMXV777wrI3ixMhWpksKlqQd2co0U5gqvMa2nGI/edit#gid=0')
+    spreadsheet = client.open_by_url(url)
 
-    sheet = spreadsheet.sheet1
+    sheet = spreadsheet.worksheet(sheet)
 
     # Extract and print all of the values
-    list_of_hashes = sheet.get_all_records()
-    print(list_of_hashes)
+    sheet_values = sheet.get_all_values()
+    print(sheet_values)
 
-    return list_of_hashes
+    return sheet_values
+
+def get_date(days_from_now=0):
+
+    now = datetime.datetime.now()
+
+    return str(now.month) + "/" + (str(now.day + days_from_now))
+
+def get_people_from_sheet(date=get_date(3), sheet=SHEET_NAME):
+    sheet_values = get_sheet(sheet=sheet)
+
+    date_col = -1
+    date_row = -1
+
+    people = []
+
+    # find location of date
+    for row, arr in enumerate(sheet_values):
+        for col, val in enumerate(arr):
+            if date in val:
+                date_col = col
+                date_row = row
+
+    is_a_name = True
+    name_row = date_row + 1
+
+    while is_a_name and name_row < len(sheet_values):
+        val = sheet_values[name_row][date_col]
+        if any(char.isdigit() for char in val):
+            is_a_name = False
+        else:
+            people.append(val)
+            name_row += 1
+
+    return people
 
 def send_reminder():
-    get_sheet()
+
+    #move this later
+    days_from_now = 3
+
+    date = get_date(3)
+
+    people = get_people_from_sheet(date=date)
+
+    slack_users = get_slack_users()
+
+    user_ids = {}
+
+    for user in slack_users:
+        name = user["profile"]["real_name_normalized"]
+        if name in people:
+            user_ids[name] = user["id"]
+
+            people.remove(name)
+
+    if len(people) > 0:
+        print("Not found: ", people)
+
+    for key, value in user_ids.items():
+        string = "Hello, " + key.split(' ', 1)[0] + "! This is your friendly 2485Bot reminding you that you are signed up for a shift " + str(days_from_now) + " days from now on " + str(date) + "."
+
+        post_message_to_slack(value, string)
 
 
 def run_scheduler():
@@ -196,6 +260,7 @@ def run_scheduler():
 def poll_scheduler():
     schedule.run_pending()
     time.sleep(1)
+    #recursive loop because recursive loops are fun
     poll_scheduler()
 
 def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
@@ -215,7 +280,7 @@ def run(port=90):
     #idk  why this works but eh
     http_thread.daemon = True
 
-    http_thread.start()
+    # http_thread.start()
 
     run_scheduler()
 
