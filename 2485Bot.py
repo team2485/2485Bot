@@ -12,24 +12,27 @@ from slackclient import SlackClient
 
 from TheBlueAlliance import TBA
 
-import oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 
 from sys import argv
 
-#save TBA token as system variable '2485BOT_TBA_API_TOKEN' and slack as '2485BOT_SLACK_API_TOKEN'
-
 #sample sheet
-SHEET_URL = 'https://docs.google.com/spreadsheets/d/1oChCUMXV777wrI3ixMhWpksKlqQd2co0U5gqvMa2nGI/edit#gid=0'
+SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ahzHfDmDL5Id-toAyaCf5d1LAiDygfJPGKz1R1jrfRo/edit?ts=5c2c5962#gid=1876596371'
 
-SHEET_NAME = "Sheet1"
+SHEET_NAME = "Calendar"
 
+# it's REMIND TIME Y'ALL
 REMIND_TIME = "18:00"
 
+REMIND_DAYS_AHEAD = 3
+
+#save TBA token as system variable '2485BOT_TBA_API_TOKEN' and slack as '2485BOT_SLACK_API_TOKEN'
 SLACK_TOKEN = os.environ['2485BOT_SLACK_API_TOKEN']
 
 sc = SlackClient(SLACK_TOKEN)
+
+DEBUG_MODE = False
 
 
 def post_message_to_slack(channel, message):
@@ -40,7 +43,7 @@ def post_message_to_slack(channel, message):
         text=message
     )
 
-def get_slack_users():
+def get_all_slack_users():
     return sc.api_call("users.list")['members']
 
 def do_invite(uid, channel):
@@ -189,22 +192,24 @@ def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
 
     sheet = spreadsheet.worksheet(sheet)
 
-    # Extract and print all of the values
+    # Extract all of the values
     sheet_values = sheet.get_all_values()
-    print(sheet_values)
 
     return sheet_values
 
 def get_date(days_from_now=0):
-
     now = datetime.datetime.now()
-
     return str(now.month) + "/" + (str(now.day + days_from_now))
 
-def get_people_from_sheet(date=get_date(3), sheet=SHEET_NAME):
+def get_day(days_from_now=0):
+    now = datetime.datetime.now()
+    return str(now.day + days_from_now)
+
+def get_people_from_sheet(date, sheet=SHEET_NAME):
     sheet_values = get_sheet(sheet=sheet)
 
-    date_col = -1
+    #date_cols is a list as some days (ie Saturdays) have multiple shifts listed on the same row.
+    date_cols = []
     date_row = -1
 
     people = []
@@ -213,32 +218,38 @@ def get_people_from_sheet(date=get_date(3), sheet=SHEET_NAME):
     for row, arr in enumerate(sheet_values):
         for col, val in enumerate(arr):
             if date in val:
-                date_col = col
+                date_cols.append(col)
                 date_row = row
 
-    is_a_name = True
-    name_row = date_row + 1
+        #breaks here to allow adding other shifts on the same day
+        if date_row > -1:
+            break
 
-    while is_a_name and name_row < len(sheet_values):
-        val = sheet_values[name_row][date_col]
-        if any(char.isdigit() for char in val):
-            is_a_name = False
-        else:
-            people.append(val)
-            name_row += 1
+    for col in date_cols:
+        is_a_name = True
+        name_row = date_row + 1
+
+        while is_a_name and name_row < len(sheet_values):
+            val = sheet_values[name_row][col]
+            if any(char.isdigit() for char in val):
+                is_a_name = False
+            else:
+                people += val.split(', ')
+                name_row += 1
 
     return people
 
-def send_reminder():
+def send_reminders():
 
-    #move this later
-    days_from_now = 3
+    day = get_day(REMIND_DAYS_AHEAD)
 
-    date = get_date(3)
+    date = get_date(REMIND_DAYS_AHEAD)
 
-    people = get_people_from_sheet(date=date)
+    people = get_people_from_sheet(date=day)
 
-    slack_users = get_slack_users()
+    print("People to remind:", people)
+
+    slack_users = get_all_slack_users()
 
     user_ids = {}
 
@@ -246,29 +257,31 @@ def send_reminder():
         name = user["profile"]["real_name_normalized"]
         if name in people:
             user_ids[name] = user["id"]
-
             people.remove(name)
 
     if len(people) > 0:
         print("Not found: ", people)
 
-    for key, value in user_ids.items():
-        string = "Hello, " + key.split(' ', 1)[0] + "! This is your friendly 2485Bot reminding you that you are signed up for a shift " + str(days_from_now) + " days from now on " + str(date) + "."
+    if not DEBUG_MODE:
+        for key, value in user_ids.items():
+            string = "Hello, " + key.split(' ', 1)[0] + "! This is your friendly 2485Bot reminding you that you are signed up for a shift " + str(REMIND_DAYS_AHEAD) + " days from now on " + str(date) + "."
 
-        post_message_to_slack(value, string)
+            post_message_to_slack(value, string)
 
-
-def run_scheduler():
-    send_reminder()
-
-    #schedule.every().day.at(remind_time).do(send_reminder)
-
-    poll_scheduler()
 
 def poll_scheduler():
     schedule.run_pending()
     time.sleep(1)
     #recursive loop because recursive loops are fun
+    poll_scheduler()
+
+def run_scheduler():
+
+    if not DEBUG_MODE:
+        schedule.every().day.at(REMIND_TIME).do(send_reminders)
+    else:
+        send_reminders()
+
     poll_scheduler()
 
 def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
@@ -288,7 +301,8 @@ def run(port=90):
     #idk  why this works but eh
     http_thread.daemon = True
 
-    http_thread.start()
+    if not DEBUG_MODE:
+        http_thread.start()
 
     run_scheduler()
 
