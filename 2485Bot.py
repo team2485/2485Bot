@@ -5,6 +5,8 @@ import schedule
 import time
 import datetime
 import multiprocessing
+import copy
+import calendar
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -25,7 +27,7 @@ SHEET_NAME = "Calendar"
 # it's REMIND TIME Y'ALL
 REMIND_TIME = "18:00"
 
-REMIND_DAYS_AHEAD = 3
+REMIND_DAYS_AHEAD = 2
 
 #save TBA token as system variable '2485BOT_TBA_API_TOKEN' and slack as '2485BOT_SLACK_API_TOKEN'
 SLACK_TOKEN = os.environ['2485BOT_SLACK_API_TOKEN']
@@ -34,6 +36,21 @@ sc = SlackClient(SLACK_TOKEN)
 
 DEBUG_MODE = False
 
+SHIFTS = {"Default": ["6pm-10pm"], "Saturday": ["8am-12pm", "12pm-5pm", "5pm-10pm"]}
+
+# SHIFTS_FORMAT = {"Default": {"6pm-10pm": []}, "Saturday": {"8am-12pm": [], "12pm-5pm": [], "5pm-10pm": []}}
+
+SHIFTS_FORMAT = {}
+
+for key, arr in SHIFTS.items():
+    SHIFTS_FORMAT[key] = {}
+
+    for index, value in enumerate(arr):
+        SHIFTS_FORMAT[key][value] = []
+
+PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}};
+
+DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain"}
 
 def post_message_to_slack(channel, message):
     print('Posting message to channel ' + channel + ' with text: ' + message)
@@ -205,6 +222,10 @@ def get_day(days_from_now=0):
     now = datetime.datetime.now()
     return str(now.day + days_from_now)
 
+def get_month_string(days_from_now=0):
+    date = datetime.datetime.today() + datetime.timedelta(days=days_from_now)
+    return calendar.day_name[date.weekday()] + ", " + date.strftime("%B") + " " + str(date.day)
+
 def get_people_from_sheet(date, sheet=SHEET_NAME):
     sheet_values = get_sheet(sheet=sheet)
 
@@ -212,7 +233,9 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
     date_cols = []
     date_row = -1
 
-    people = []
+    day_key = "Default"
+
+    people = PEOPLE_FORMAT.copy()
 
     # find location of date
     for row, arr in enumerate(sheet_values):
@@ -225,25 +248,44 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
         if date_row > -1:
             break
 
+    # find what day it is
+    for key, value in SHIFTS_FORMAT.items():
+        for row, arr in enumerate(sheet_values):
+            if key in arr[date_cols[0]]:
+                day_key = key
+
+    # prep shifts
+    for key, value in people.items():
+        # DEEP copy (.copy() method doesn't work for some reason)
+        people[key] = copy.deepcopy(SHIFTS_FORMAT[day_key])
+
+    shift = 0
+
+    # get people
     for col in date_cols:
         is_a_name = True
         name_row = date_row + 1
 
+        shift_key = SHIFTS[day_key][shift]
+
         while is_a_name and name_row < len(sheet_values):
             val = sheet_values[name_row][col]
+            department = sheet_values[name_row][0]
+
             if any(char.isdigit() for char in val):
                 is_a_name = False
             else:
-                people += val.split(', ')
+                people[department][shift_key] += val.split(', ')
                 name_row += 1
+
+
+        shift+=1
 
     return people
 
 def send_reminders():
 
     day = get_day(REMIND_DAYS_AHEAD)
-
-    date = get_date(REMIND_DAYS_AHEAD)
 
     people = get_people_from_sheet(date=day)
 
@@ -253,20 +295,40 @@ def send_reminders():
 
     user_ids = {}
 
+    missing_people = []
+
+    for department, dict in people.items():
+        for shift, name in dict.items():
+            missing_people += name
+
     for user in slack_users:
         name = user["profile"]["real_name_normalized"]
-        if name in people:
+        if name in missing_people:
             user_ids[name] = user["id"]
-            people.remove(name)
+            missing_people.remove(name)
+        for key, value in DEPARTMENT_HEADS.items():
+            if name == value:
+                DEPARTMENT_HEADS[key] = user["id"]
 
     if len(people) > 0:
-        print("Not found: ", people)
+        print("Not found: ", missing_people)
 
-    if not DEBUG_MODE:
-        for key, value in user_ids.items():
-            string = "Hello, " + key.split(' ', 1)[0] + "! This is your friendly 2485Bot reminding you that you are signed up for a shift " + str(REMIND_DAYS_AHEAD) + " days from now on " + str(date) + "."
+# todo deal with non saturdays
 
-            post_message_to_slack(value, string)
+    for department, dict in people.items():
+        for shift, arr in dict.items():
+            for name in arr:
+                if name not in missing_people and name in list(user_ids.keys()):
+                    string = "Hello " + "<@" + user_ids[name] + ">" + ", "
+                    string += "you are signed up " + str(REMIND_DAYS_AHEAD) + " days from now "
+                    string += "on *" + get_month_string(REMIND_DAYS_AHEAD)  + "* "
+                    string += "for the *" + shift + "* shift. "
+                    string += "If you need to reschedule, please dm " + "<@" + DEPARTMENT_HEADS[department] + ">" + "."
+
+                    print(string)
+
+                    if not DEBUG_MODE:
+                        post_message_to_slack(user_ids[name], string)
 
 
 def poll_scheduler():
@@ -293,8 +355,6 @@ def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
 
 
 def run(port=90):
-
-    #scheduler_thread = multiprocessing.Process(target=run_scheduler, args=())
 
     http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
 
