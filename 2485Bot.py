@@ -50,7 +50,7 @@ for key, arr in SHIFTS.items():
 
 PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}};
 
-DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain"}
+DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain", "Bot": "Nathan Sariowan"}
 
 def post_message_to_slack(channel, message):
     print('Posting message to channel ' + channel + ' with text: ' + message)
@@ -315,6 +315,8 @@ def send_reminders():
 
 # todo deal with non saturdays
 
+    debug_string = "Sent to: "
+
     for department, dict in people.items():
         for shift, arr in dict.items():
             for name in arr:
@@ -327,8 +329,18 @@ def send_reminders():
 
                     print(string)
 
+                    debug_string += "<@" + user_ids[name] + "> "
+
                     if not DEBUG_MODE:
                         post_message_to_slack(user_ids[name], string)
+
+    debug_string += "\nNot Found: "
+
+    for value in missing_people:
+        debug_string += value + " "
+
+    post_message_to_slack((DEPARTMENT_HEADS["bot"]), debug_string)
+
 
 
 def poll_scheduler():
