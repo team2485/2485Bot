@@ -1,9 +1,5 @@
-import os
-
-#save TBA token as system variable 'TBA_API_TOKEN' and slack as 'SLACK_API_TOKEN'
-SLACK_TOKEN = os.environ['SLACK_API_TOKEN']
-
 import json
+import os
 from time import sleep
 import schedule
 import time
@@ -32,6 +28,9 @@ SHEET_NAME = "Calendar"
 REMIND_TIME = "18:00"
 
 REMIND_DAYS_AHEAD = 2
+
+#save TBA token as system variable 'TBA_API_TOKEN' and slack as 'SLACK_API_TOKEN'
+SLACK_TOKEN = os.environ['SLACK_API_TOKEN']
 
 sc = SlackClient(SLACK_TOKEN)
 
