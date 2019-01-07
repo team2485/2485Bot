@@ -352,8 +352,10 @@ def poll_scheduler():
 def run_scheduler():
 
     if not DEBUG_MODE:
+        print("Running scheduler...")
         schedule.every().day.at(REMIND_TIME).do(send_reminders)
     else:
+        print("Sending message...")
         send_reminders()
 
     poll_scheduler()
