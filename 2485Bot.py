@@ -34,7 +34,7 @@ SLACK_TOKEN = os.environ['SLACK_API_TOKEN']
 
 sc = SlackClient(SLACK_TOKEN)
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 SHIFTS = {"Default": ["6pm-10pm"], "Saturday": ["8am-12pm", "12pm-5pm", "5pm-10pm"]}
 
@@ -61,7 +61,11 @@ def post_message_to_slack(channel, message):
     )
 
 def get_all_slack_users():
-    return sc.api_call("users.list")['members']
+    users = sc.api_call("users.list")
+    if 'members' in users.keys():
+        return sc.api_call("users.list")['members']
+    else:
+        print(users)
 
 def do_invite(uid, channel):
     sc.api_call('channels.invite',
@@ -275,7 +279,15 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
             if any(char.isdigit() for char in val):
                 is_a_name = False
             else:
-                people[department][shift_key] += val.split(', ')
+
+                vals = val.split(', ')
+                final_vals = []
+
+                for person in vals:
+                    if person not in final_vals:
+                        final_vals.append(person)
+
+                people[department][shift_key] += final_vals
                 name_row += 1
 
 
@@ -339,7 +351,7 @@ def send_reminders():
     for value in missing_people:
         debug_string += value + " "
 
-    post_message_to_slack((DEPARTMENT_HEADS["bot"]), debug_string)
+    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
 
 
 
