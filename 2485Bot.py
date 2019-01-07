@@ -344,10 +344,9 @@ def send_reminders():
 
 
 def poll_scheduler():
-    schedule.run_pending()
-    time.sleep(1)
-    #recursive loop because recursive loops are fun
-    poll_scheduler()
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 def run_scheduler():
 
