@@ -201,7 +201,7 @@ class S(BaseHTTPRequestHandler):
         elif post_data["command"] ==  'cheer':
             post_message_to_slack(post_data['channel_id'], 'WARLORDS!')
             self.wfile.write('Success!')
-        elif command == 'cheera':
+        elif post_data["command"] == 'cheera':
             post_message_to_slack(post_data['channel_id'], 'WARLORDA!')
             self.wfile.write('Success!')
         elif post_data["command"] == 'toggle-reminders':
