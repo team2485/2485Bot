@@ -27,14 +27,14 @@ SHEET_NAME = "Calendar"
 # it's REMIND TIME Y'ALL
 REMIND_TIME = "18:00"
 
-REMIND_DAYS_AHEAD = 2
+REMIND_DAYS_AHEAD = 1
 
 #save TBA token as system variable 'TBA_API_TOKEN' and slack as 'SLACK_API_TOKEN'
 SLACK_TOKEN = os.environ['SLACK_API_TOKEN']
 
 sc = SlackClient(SLACK_TOKEN)
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 SHIFTS = {"Default": ["6pm-10pm"], "Saturday": ["8am-12pm", "12pm-5pm", "5pm-10pm"]}
 
@@ -244,7 +244,8 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
     # find location of date
     for row, arr in enumerate(sheet_values):
         for col, val in enumerate(arr):
-            if date in val:
+            nums = [int(s) for s in val.split() if s.isdigit()]
+            if len(nums) > 0 and date == str(nums[0]):
                 date_cols.append(col)
                 date_row = row
 
@@ -287,7 +288,9 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
                     if person not in final_vals:
                         final_vals.append(person)
 
-                people[department][shift_key] += final_vals
+                if department in people.keys():
+                    people[department][shift_key] += final_vals
+
                 name_row += 1
 
 
@@ -310,20 +313,42 @@ def send_reminders():
     missing_people = []
 
     for department, dict in people.items():
-        for shift, name in dict.items():
-            missing_people += name
+        for shift, arr in dict.items():
+            for name in arr:
+                if name not in missing_people:
+                    missing_people.append(name)
+
+
+    found_persons = []
 
     for user in slack_users:
         name = user["profile"]["real_name_normalized"]
-        if name in missing_people:
-            user_ids[name] = user["id"]
-            missing_people.remove(name)
+        for person in missing_people:
+
+            same_person = True
+
+            name_arr = name.split(" ")
+            person_arr = person.split(" ")
+
+            for person_part in person_arr:
+                if person_part not in name_arr:
+                    same_person = False
+                    break
+
+            if same_person:
+                if person in found_persons:
+                    found_persons.remove(person)
+                    user_ids[person] = ''
+                    missing_people.append(person + " (multiple found)")
+                else:
+                    found_persons.append(person)
+                    user_ids[person] = user["id"]
+                    if person in missing_people:
+                        missing_people = list(filter(lambda a: a != person, missing_people))
+
         for key, value in DEPARTMENT_HEADS.items():
             if name == value:
                 DEPARTMENT_HEADS[key] = user["id"]
-
-    if len(people) > 0:
-        print("Not found: ", missing_people)
 
 # todo deal with non saturdays
 
@@ -351,7 +376,10 @@ def send_reminders():
     for value in missing_people:
         debug_string += value + " "
 
-    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
+    print(debug_string)
+
+    if not DEBUG_MODE:
+        post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
 
 
 
