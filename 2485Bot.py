@@ -50,7 +50,7 @@ for key, arr in SHIFTS.items():
 
 PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}};
 
-DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain", "Bot": "Nathan Sariowan"}
+DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain", "Mentors": "Ryan Griggs", "Bot": "Nathan Sariowan"}
 
 def post_message_to_slack(channel, message):
     print('Posting message to channel ' + channel + ' with text: ' + message)
@@ -114,7 +114,7 @@ class S(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write('<html><body><h1>hi!</h1></body></html>')
+        self.wfile.write(b'<html><body><h1>hi!</h1></body></html>')
 
     def do_HEAD(self):
         self._set_headers()
@@ -123,26 +123,30 @@ class S(BaseHTTPRequestHandler):
         # Doesn't do anything with posted data
 
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
-        post_data = self.rfile.read(content_length)  # <--- Gets the data itself
+        data = self.rfile.read(content_length)
+        post_data = dict((k.strip(), v.strip()) for k,v in
+              (item.split('=') for item in data.split('&')))
         print(post_data)
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
-        channel_id = post_data[post_data.index('&channel_id=') + 12:post_data.index('&channel_name=')]
-        text = post_data[post_data.index('&text=') + 6:post_data.index('&response_url=')]
-        if "channel_created" in post_data:
-            print('channel id!!! : ' + post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
+        channel_id = post_data['channel_id']
+        text = post_data['text']
+        id = post_data["id"]
+        command = post_data["command"]
+        if "channel_created" in data:
+            print('channel id!!! : ' + id)
             sleep(1)
-            do_invite('U0AK9DFK3', post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
+            do_invite('U0AK9DFK3', id)
             self.wfile.write(200)
-        elif "channel_unarchive" in post_data:
-            do_invite('U0AK9DFK3', post_data[post_data.index('{"id":"') + 7:post_data.index('","is_channel"')])
-            print('channel id!!! : ' + post_data[post_data.index(',"channel":') + 12:post_data.index('","user"')])
+        elif "channel_unarchive" in data:
+            do_invite('U0AK9DFK3', id)
+            print('channel id!!! : ' + id)
             self.wfile.write(200)
-        elif "challenge" in post_data:
-            print(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
-            self.wfile.write(post_data[post_data.index("challenge") + 12:post_data.index("}") - 2])
-        elif parse_command(post_data, 'rank'):
+        elif "challenge" in data:
+            print(post_data["challenge"])
+            self.wfile.write(post_data["challenge"])
+        elif command == 'rank':
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -153,7 +157,7 @@ class S(BaseHTTPRequestHandler):
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
-        elif parse_command(post_data, 'matches'):
+        elif command ==  'matches':
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -166,7 +170,7 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif parse_command(post_data, 'announcematches'):
+        elif command ==  'announcematches':
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -180,7 +184,7 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif parse_command(post_data, 'announcerank'):
+        elif command ==  'announcerank':
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -192,15 +196,30 @@ class S(BaseHTTPRequestHandler):
             else:
                 post_message_to_slack(channel_id, clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
-        elif parse_command(post_data, 'init-cheer'):
+        elif command ==  'init-cheer':
             post_message_to_slack(channel_id, 'WE ARE...')
             self.wfile.write('Success!')
-        elif parse_command(post_data, 'cheer'):
+        elif command ==  'cheer':
             post_message_to_slack(channel_id, 'WARLORDS!')
             self.wfile.write('Success!')
-        elif parse_command(post_data, 'cheera'):
+        elif command == 'cheera':
             post_message_to_slack(channel_id, 'WARLORDA!')
             self.wfile.write('Success!')
+        elif command == 'toggle-reminders':
+            file = open("nosend.txt", "w+")
+            contents = file.read()
+            contents_arr = contents.split(",")
+            if post_data["user_id"] in contents_arr:
+                contents = contents.replace(post_data["user_id"] + ",", "")
+                self.wfile.write('You will no longer be sent reminders. Use \'/toggle-reminders to undo this.\'')
+            else:
+                contents += post_data["user_id"] + ","
+                self.wfile.write('You will now be sent reminders. Use \'/toggle-reminders to undo this.\'')
+            file.write(contents)
+
+
+
+
 
 
 def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
@@ -340,7 +359,7 @@ def send_reminders():
                     found_persons.remove(person)
                     user_ids[person] = ''
                     missing_people.append(person + " (multiple found)")
-                else:
+                elif len(person) > 0:
                     found_persons.append(person)
                     user_ids[person] = user["id"]
                     if person in missing_people:
@@ -354,10 +373,16 @@ def send_reminders():
 
     debug_string = "Sent to: "
 
+    file = open("nosend.txt", "r+")
+    contents = file.read()
+    no_send = contents.split(",")
+
+    print("No send:", no_send)
+
     for department, dict in people.items():
         for shift, arr in dict.items():
             for name in arr:
-                if name not in missing_people and name in list(user_ids.keys()):
+                if name not in missing_people and name in list(user_ids.keys()) and user_ids[name] not in no_send:
                     string = "Hello " + "<@" + user_ids[name] + ">" + ", "
                     string += "you are signed up " + str(REMIND_DAYS_AHEAD) + " days from now "
                     string += "on *" + get_month_string(REMIND_DAYS_AHEAD)  + "* "
@@ -399,7 +424,7 @@ def run_scheduler():
 
     poll_scheduler()
 
-def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
+def run_httpserver(port=8000, server_class=HTTPServer, handler_class=S):
 
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
@@ -407,7 +432,7 @@ def run_httpserver(port=90, server_class=HTTPServer, handler_class=S):
     httpd.serve_forever(poll_interval=0.5)
 
 
-def run(port=90):
+def run(port=8000):
 
     http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
 
