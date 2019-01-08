@@ -123,30 +123,29 @@ class S(BaseHTTPRequestHandler):
         # Doesn't do anything with posted data
 
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
-        data = self.rfile.read(content_length)
-        post_data = dict((k.strip(), v.strip()) for k,v in
-              (item.split('=') for item in data.split('&')))
+        data = str(self.rfile.read(content_length))
+        post_data = dict((k.strip(), v.strip()) for k,v in (item.split('=') for item in data.split('&')))
         print(post_data)
         event_key = "2018gal"
         print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
-        channel_id = post_data['channel_id']
-        text = post_data['text']
-        id = post_data["id"]
-        command = post_data["command"]
+
+        if "command" in post_data.keys():
+            post_data["command"] = post_data["command"].replace("%2F", "")
+
         if "channel_created" in data:
-            print('channel id!!! : ' + id)
+            print('channel id!!! : ' + post_data["id"])
             sleep(1)
-            do_invite('U0AK9DFK3', id)
+            do_invite('U0AK9DFK3', post_data["id"])
             self.wfile.write(200)
         elif "channel_unarchive" in data:
-            do_invite('U0AK9DFK3', id)
-            print('channel id!!! : ' + id)
+            do_invite('U0AK9DFK3', post_data["id"])
+            print('channel id!!! : ' + post_data["id"])
             self.wfile.write(200)
         elif "challenge" in data:
             print(post_data["challenge"])
             self.wfile.write(post_data["challenge"])
-        elif command == 'rank':
+        elif post_data["command"] == 'rank':
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -157,7 +156,7 @@ class S(BaseHTTPRequestHandler):
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
                 self.wfile.write(clear_b(data["overall_status_str"]))
-        elif command ==  'matches':
+        elif post_data["command"] ==  'matches':
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -170,7 +169,7 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif command ==  'announcematches':
+        elif post_data["command"] ==  'announcematches':
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
             # Print the status code of the response.
@@ -179,12 +178,12 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write('Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
-                post_message_to_slack(channel_id, list_matches(data, "match_number"))
+                post_message_to_slack(post_data['channel_id'], list_matches(data, "match_number"))
                 self.wfile.write('Success!')
             else:
                 self.wfile.write("Matches have not been posted yet.")
             print(data)
-        elif command ==  'announcerank':
+        elif post_data["command"] ==  'announcerank':
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -192,20 +191,20 @@ class S(BaseHTTPRequestHandler):
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
                 self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                post_message_to_slack(channel_id, 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                post_message_to_slack(post_data['channel_id'], 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
-                post_message_to_slack(channel_id, clear_b(data["overall_status_str"]))
+                post_message_to_slack(post_data['channel_id'], clear_b(data["overall_status_str"]))
             self.wfile.write('Success!')
-        elif command ==  'init-cheer':
-            post_message_to_slack(channel_id, 'WE ARE...')
+        elif post_data["command"] ==  'init-cheer':
+            post_message_to_slack(post_data['channel_id'], 'WE ARE...')
             self.wfile.write('Success!')
-        elif command ==  'cheer':
-            post_message_to_slack(channel_id, 'WARLORDS!')
+        elif post_data["command"] ==  'cheer':
+            post_message_to_slack(post_data['channel_id'], 'WARLORDS!')
             self.wfile.write('Success!')
         elif command == 'cheera':
-            post_message_to_slack(channel_id, 'WARLORDA!')
+            post_message_to_slack(post_data['channel_id'], 'WARLORDA!')
             self.wfile.write('Success!')
-        elif command == 'toggle-reminders':
+        elif post_data["command"] == 'toggle-reminders':
             file = open("nosend.txt", "w+")
             contents = file.read()
             contents_arr = contents.split(",")
