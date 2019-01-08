@@ -48,7 +48,7 @@ for key, arr in SHIFTS.items():
     for index, value in enumerate(arr):
         SHIFTS_FORMAT[key][value] = []
 
-PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}};
+PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}, "Mentors": {}};
 
 DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain", "Mentors": "Ryan Griggs", "Bot": "Nathan Sariowan"}
 
@@ -400,8 +400,6 @@ def send_reminders():
 
                     if not DEBUG_MODE:
                         post_message_to_slack(user_ids[name], string)
-                    else:
-                        post_message_to_slack(DEPARTMENT_HEADS["Bot"], string)
 
     debug_string += "\nNot Found: "
 
