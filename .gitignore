@@ -5,3 +5,5 @@ venv/
 
 keys.txt
 client_secret.json
+nosend.txt
+nohup.out

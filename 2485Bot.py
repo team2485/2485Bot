@@ -27,7 +27,7 @@ SHEET_NAME = "Calendar"
 # it's REMIND TIME Y'ALL
 REMIND_TIME = "18:00"
 
-REMIND_DAYS_AHEAD = 1
+REMIND_DAYS_AHEAD = 2
 
 #save TBA token as system variable 'TBA_API_TOKEN' and slack as 'SLACK_API_TOKEN'
 SLACK_TOKEN = os.environ['SLACK_API_TOKEN']
@@ -205,16 +205,19 @@ class S(BaseHTTPRequestHandler):
             post_message_to_slack(post_data['channel_id'], 'WARLORDA!')
             self.wfile.write(b'Success!')
         elif post_data["command"] == 'toggle-reminders':
-            file = open("nosend.txt", "w+")
+            file = open("nosend.txt", "r")
             contents = file.read()
             contents_arr = contents.split(",")
+            file.close()
+            file = open("nosend.txt", "w")
             if post_data["user_id"] in contents_arr:
-                contents = contents.replace(post_data["user_id"] + ",", "")
-                self.wfile.write(b'You will no longer be sent reminders. Use \'/toggle-reminders to undo this.\'')
+                contents = contents.replace("," + post_data["user_id"], "")
+                self.wfile.write(b'You will now be sent reminders. Use \'/toggle-reminders\' to undo this.')
             else:
-                contents += post_data["user_id"] + ","
-                self.wfile.write(b'You will now be sent reminders. Use \'/toggle-reminders to undo this.\'')
+                contents += "," + post_data["user_id"]
+                self.wfile.write(b'You will no longer be sent reminders. Use \'/toggle-reminders\' to undo this.')
             file.write(contents)
+            file.close()
 
 
 
@@ -372,7 +375,7 @@ def send_reminders():
 
     debug_string = "Sent to: "
 
-    file = open("nosend.txt", "r+")
+    file = open("nosend.txt", "r")
     contents = file.read()
     no_send = contents.split(",")
 
@@ -386,7 +389,10 @@ def send_reminders():
                     string += "you are signed up " + str(REMIND_DAYS_AHEAD) + " days from now "
                     string += "on *" + get_month_string(REMIND_DAYS_AHEAD)  + "* "
                     string += "for the *" + shift + "* shift. "
-                    string += "If you need to reschedule, please dm " + "<@" + DEPARTMENT_HEADS[department] + ">" + "."
+                    string += "\nIf you need to reschedule, please dm " + "<@" + DEPARTMENT_HEADS[department] + ">" + ". "
+                    string += "To opt out of reminders, type \'/toggle-reminders\'. "
+                    string += "<" + SHEET_URL + "|Click here to go to the Scheduling Sheet.>"
+                    
 
                     print(string)
 
@@ -394,6 +400,8 @@ def send_reminders():
 
                     if not DEBUG_MODE:
                         post_message_to_slack(user_ids[name], string)
+                    else:
+                        post_message_to_slack(DEPARTMENT_HEADS["Bot"], string)
 
     debug_string += "\nNot Found: "
 
@@ -402,8 +410,8 @@ def send_reminders():
 
     print(debug_string)
 
-    if not DEBUG_MODE:
-        post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
+    
+    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
 
 
 
