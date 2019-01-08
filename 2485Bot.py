@@ -144,7 +144,7 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write(200)
         elif "challenge" in data:
             print(post_data["challenge"])
-            self.wfile.write(post_data["challenge"])
+            self.wfile.write(bytes(post_data["challenge"], 'utf-8'))
         elif post_data["command"] == 'rank':
             response = TBA.request("/event/%s/status" % event_key)
             # Print the status code of the response.
@@ -152,10 +152,10 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
-                self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
                 print('TBA RANKING: ' + data["ranking"]["rank"])
             else:
-                self.wfile.write(clear_b(data["overall_status_str"]))
+                self.wfile.write(bytes(clear_b(data["overall_status_str"]), 'utf-8'))
         elif post_data["command"] ==  'matches':
             print('Matches!')
             response = TBA.request("/event/%s/matches/simple" % event_key)
@@ -164,10 +164,10 @@ class S(BaseHTTPRequestHandler):
             print(response.content)
             data = json.loads(response.text)
             if len(data) > 0:
-                self.wfile.write('Team 2485 is in matches ')
-                self.wfile.write(list_matches(data, "match_number"))
+                self.wfile.write(b'Team 2485 is in matches ')
+                self.wfile.write(bytes(list_matches(data, "match_number"), 'utf-8'))
             else:
-                self.wfile.write("Matches have not been posted yet.")
+                self.wfile.write(b"Matches have not been posted yet.")
             print(data)
         elif post_data["command"] ==  'announcematches':
             print('Matches!')
@@ -175,13 +175,13 @@ class S(BaseHTTPRequestHandler):
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
-            self.wfile.write('Team 2485 is in matches ')
+            self.wfile.write(b'Team 2485 is in matches ')
             data = json.loads(response.text)
             if len(data) > 0:
                 post_message_to_slack(post_data['channel_id'], list_matches(data, "match_number"))
-                self.wfile.write('Success!')
+                self.wfile.write(b'Success!')
             else:
-                self.wfile.write("Matches have not been posted yet.")
+                self.wfile.write(b"Matches have not been posted yet.")
             print(data)
         elif post_data["command"] ==  'announcerank':
             response = TBA.request("/event/%s/status" % event_key)
@@ -190,30 +190,30 @@ class S(BaseHTTPRequestHandler):
             data = json.loads(response.text)
             print('TBA RETURN: ' + str(data))
             if "ranking" in data:
-                self.wfile.write('Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+                self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
                 post_message_to_slack(post_data['channel_id'], 'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             else:
                 post_message_to_slack(post_data['channel_id'], clear_b(data["overall_status_str"]))
-            self.wfile.write('Success!')
+            self.wfile.write(b'Success!')
         elif post_data["command"] ==  'init-cheer':
             post_message_to_slack(post_data['channel_id'], 'WE ARE...')
-            self.wfile.write('Success!')
+            self.wfile.write(b'Success!')
         elif post_data["command"] ==  'cheer':
             post_message_to_slack(post_data['channel_id'], 'WARLORDS!')
-            self.wfile.write('Success!')
+            self.wfile.write(b'Success!')
         elif post_data["command"] == 'cheera':
             post_message_to_slack(post_data['channel_id'], 'WARLORDA!')
-            self.wfile.write('Success!')
+            self.wfile.write(b'Success!')
         elif post_data["command"] == 'toggle-reminders':
             file = open("nosend.txt", "w+")
             contents = file.read()
             contents_arr = contents.split(",")
             if post_data["user_id"] in contents_arr:
                 contents = contents.replace(post_data["user_id"] + ",", "")
-                self.wfile.write('You will no longer be sent reminders. Use \'/toggle-reminders to undo this.\'')
+                self.wfile.write(b'You will no longer be sent reminders. Use \'/toggle-reminders to undo this.\'')
             else:
                 contents += post_data["user_id"] + ","
-                self.wfile.write('You will now be sent reminders. Use \'/toggle-reminders to undo this.\'')
+                self.wfile.write(b'You will now be sent reminders. Use \'/toggle-reminders to undo this.\'')
             file.write(contents)
 
 
