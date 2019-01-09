@@ -133,7 +133,7 @@ class S(BaseHTTPRequestHandler):
         if "challenge" in data:
             print("uwu i got a challenge goku-san, i'll complete it well~! here have its contents")
             print(data)
-            self.wfile.write(bytes(data["challenge"], 'utf-8'))
+            self.wfile.write(bytes(data['challenge'], 'utf-8'))
             return
         post_data = dict((k.strip(), v.strip()) for k, v in (item.split('=') for item in data.split('&')))
         print(post_data)
