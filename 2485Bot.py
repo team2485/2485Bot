@@ -132,8 +132,10 @@ class S(BaseHTTPRequestHandler):
         data = str(self.rfile.read(content_length))
         if "challenge" in data:
             print("uwu i got a challenge goku-san, i'll complete it well~! here have its contents")
-            print(data)
-            self.wfile.write(bytes(data['challenge'], 'utf-8'))
+            challenge_token = data[data.index('challenge'):]
+            print(challenge_token) # string[start: end: step]
+
+            self.wfile.write(bytes(challenge_token, 'utf-8'))
             return
         post_data = dict((k.strip(), v.strip()) for k, v in (item.split('=') for item in data.split('&')))
         print(post_data)
