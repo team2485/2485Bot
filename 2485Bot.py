@@ -130,6 +130,7 @@ class S(BaseHTTPRequestHandler):
 
         content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
         data = str(self.rfile.read(content_length))
+        print(data)
         if "challenge" in data:
             challenge_token = data[data.index('challenge'):]
             self.wfile.write(bytes(challenge_token, 'utf-8'))
