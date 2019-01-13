@@ -319,7 +319,7 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
 
                 for person in vals:
                     if person not in final_vals:
-                        final_vals.append(person)
+                        final_vals.append(person.strip())
 
                 if department in people.keys():
                     people[department][shift_key] += final_vals
@@ -418,7 +418,7 @@ def send_reminders():
 
     print(debug_string)
 
-    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
+    # post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
 
 
 def poll_scheduler():
