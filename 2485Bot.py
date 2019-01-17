@@ -401,7 +401,7 @@ def send_reminders():
                     string += "for the *" + shift + "* shift. "
                     string += "\nIf you need to reschedule, please dm " + "<@" + DEPARTMENT_HEADS[
                         department] + ">" + ". "
-                    string += "To opt out of reminders, type \'/toggle-reminders\'. "
+                    string += "To opt out of reminders, type `/toggle-reminders`. "
                     string += "<" + SHEET_URL + "|Click here to go to the Scheduling Sheet.>"
 
                     print(string)
@@ -418,7 +418,7 @@ def send_reminders():
 
     print(debug_string)
 
-    # post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
+    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
 
 
 def poll_scheduler():
