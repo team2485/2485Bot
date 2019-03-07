@@ -21,6 +21,8 @@ from sys import argv
 
 EVENT = "2019casd"
 
+TEAM = "frc2485"
+
 lastMatchKey = ""
 modifiedSince = 0
 
@@ -147,13 +149,13 @@ class S(BaseHTTPRequestHandler):
             self.wfile.write(200)
 
 
-        elif post_data["command"] == 'status':
+        elif post_data["command"] == 'rank':
             response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
 
-            self.wfile.write(bytes(clear_b(data["overall_status_str"]), 'utf-8'))
+            self.wfile.write(bytes(data["overall_status_str"].replace("<b>", "*").replace("</b>", "*"), 'utf-8'))
             # if "ranking" in data:
             #     self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
             #     print('TBA RANKING: ' + data["ranking"]["rank"])
@@ -199,19 +201,18 @@ class S(BaseHTTPRequestHandler):
                 wonlost = "won" if ouralliance == winner else "lost"
 
                 string = "Team 2485's last match was match " + str(matchdata["match_number"])
-                string += ". We " + wonlost
-                string += " with score " + matchdata["score_breakdown"][ouralliance]["totalPoints"] + "-" + matchdata["score_breakdown"][otheralliance]["totalPoints"]
-                string += " (" + matchdata["score_breakdown"][ouralliance]["rp"] + " RP earned). "
-                string += data["overall_status_str"]
+                string += ". We *" + wonlost
+                string += "* with score *" + str(matchdata["score_breakdown"][ouralliance]["totalPoints"]) + "-" + str(matchdata["score_breakdown"][otheralliance]["totalPoints"])
+                string += " (" + str(matchdata["score_breakdown"][ouralliance]["rp"]) + " RP earned).* "
+                string += data["overall_status_str"].replace("<b>", "").replace("</b>", "")
 
-                self.wfile.write(bytes(string))
+                self.wfile.write(bytes(string, "utf-8"))
 
             else:
                 self.wfile.write(b"Team 2485 has not had any matches yet.")
             print(data)
 
         elif post_data["command"] == 'nextmatch':
-            print('Matches!')
             response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
@@ -230,11 +231,20 @@ class S(BaseHTTPRequestHandler):
 
                 time = datetime.datetime.fromtimestamp(int(matchdata["predicted_time"]))
 
-                string = "Team 2485's next match is match " + str(matchdata["match_number"])
-                string += " at " + time.hour + ":" + time.minute + ". "
-                string += "Alliance partners: " + ', '.join(matchdata["alliances"][ouralliance]["team_keys"].remove("frc2485")) + ". "
+                meridiem = "AM" if time.hour < 12 else "PM"
 
-                self.wfile.write(bytes(string))
+                hour = time.hour if time.hour < 12 else time.hour - 12
+                
+
+
+                alliances = matchdata["alliances"][ouralliance]["team_keys"]
+                alliances.remove("frc2485")
+
+                string = "Team 2485's next match is match *" + str(matchdata["match_number"])
+                string += "* at *" + str(hour) + ":" + str(time.minute) + " " + meridiem + "*. "
+                string += "Alliance partners: " + ", ".join(alliances).replace("frc", "") +  ". "
+
+                self.wfile.write(bytes(string, "utf-8"))
             else:
                 self.wfile.write(b"Match data has not been posted yet.")
             print(data)
@@ -286,24 +296,6 @@ def get_month_string(days_from_now=0):
     date = datetime.datetime.today() + datetime.timedelta(days=days_from_now)
     return calendar.day_name[date.weekday()] + ", " + date.strftime("%B") + " " + str(date.day)
 
-
-# def poll_scheduler():
-#     while True:
-#         response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
-#         # Print the status code of the response.
-#         print('STATUS CODE: ' + str(response.status_code))
-#         data = json.loads(response.text)
-#
-#         message = ""
-#
-#         if "last_match_key" in data.keys() and data["last_match_key"] != lastMatchKey:
-#             lastMatchKey = data["last_match_key"]
-#
-#         modifiedSince = datetime.datetime.
-#         time.slee
-# def run_scheduler():
-#
-#     poll_scheduler()
 
 
 def run_httpserver(port=8000, server_class=HTTPServer, handler_class=S):
