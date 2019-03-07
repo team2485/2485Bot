@@ -1,7 +1,7 @@
 import json
 import os
 from time import sleep
-import schedule
+import sched
 import time
 import datetime
 import multiprocessing
@@ -19,15 +19,18 @@ import gspread
 
 from sys import argv
 
+EVENT = "2019casd"
+
+lastMatchKey = ""
+modifiedSince = 0
+
 # sample sheet
 SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ahzHfDmDL5Id-toAyaCf5d1LAiDygfJPGKz1R1jrfRo/edit?ts=5c2c5962#gid' \
             '=1876596371 '
 
 SHEET_NAME = "Calendar"
-
 # it's REMIND TIME Y'ALL
 REMIND_TIME = "18:00"
-
 REMIND_DAYS_AHEAD = 2
 
 # save TBA token as system variable 'TBA_API_TOKEN' and slack as 'SLACK_API_TOKEN'
@@ -38,19 +41,13 @@ sc = SlackClient(SLACK_TOKEN)
 DEBUG_MODE = False
 
 SHIFTS = {"Default": ["6pm-10pm"], "Saturday": ["8am-12pm", "12pm-5pm", "5pm-10pm"]}
-
-# SHIFTS_FORMAT = {"Default": {"6pm-10pm": []}, "Saturday": {"8am-12pm": [], "12pm-5pm": [], "5pm-10pm": []}}
-
 SHIFTS_FORMAT = {}
 
 for key, arr in SHIFTS.items():
     SHIFTS_FORMAT[key] = {}
-
     for index, value in enumerate(arr):
         SHIFTS_FORMAT[key][value] = []
-
 PEOPLE_FORMAT = {"Design/Build": {}, "Soft/Strat": {}, "Bus/Out": {}, "Mentors": {}}
-
 DEPARTMENT_HEADS = {"Design/Build": "Eleanor Hansen", "Soft/Strat": "Sahana Kumar", "Bus/Out": "Jake Brittain",
                     "Mentors": "Ryan Griggs", "Bot": "Nathan Sariowan"}
 
@@ -135,13 +132,9 @@ class S(BaseHTTPRequestHandler):
             challenge_token = data[data.index('challenge'):]
             self.wfile.write(bytes(challenge_token, 'utf-8'))
             return
-        elif "url_private_download" in data:
-            print(data["event"]["files"]["url_private_download"])
 
         post_data = dict((k.strip(), v.strip()) for k, v in (item.split('=') for item in data.split('&')))
         print(post_data)
-        event_key = "2018gal"
-        print("YEAR ->>>>>>>>>>> " + event_key)
         self._set_headers()
 
         if "command" in post_data.keys():
@@ -152,24 +145,24 @@ class S(BaseHTTPRequestHandler):
             sleep(1)
             do_invite('U0AK9DFK3', post_data["id"])
             self.wfile.write(200)
-        elif "channel_unarchive" in data:
-            do_invite('U0AK9DFK3', post_data["id"])
-            print('channel id!!! : ' + post_data["id"])
-            self.wfile.write(200)
-        elif post_data["command"] == 'rank':
-            response = TBA.request("/event/%s/status" % event_key)
+
+
+        elif post_data["command"] == 'status':
+            response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             data = json.loads(response.text)
-            print('TBA RETURN: ' + str(data))
-            if "ranking" in data:
-                self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                print('TBA RANKING: ' + data["ranking"]["rank"])
-            else:
-                self.wfile.write(bytes(clear_b(data["overall_status_str"]), 'utf-8'))
+
+            self.wfile.write(bytes(clear_b(data["overall_status_str"]), 'utf-8'))
+            # if "ranking" in data:
+            #     self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+            #     print('TBA RANKING: ' + data["ranking"]["rank"])
+            # else:
+            #     self.wfile.write(bytes(clear_b(data["overall_status_str"]), 'utf-8'))
+
+
         elif post_data["command"] == 'matches':
-            print('Matches!')
-            response = TBA.request("/event/%s/matches/simple" % event_key)
+            response = TBA.request("/team/frc2485/event/%s/matches/simple" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
@@ -180,42 +173,73 @@ class S(BaseHTTPRequestHandler):
             else:
                 self.wfile.write(b"Matches have not been posted yet.")
             print(data)
-        elif post_data["command"] == 'announcematches':
-            print('Matches!')
-            response = TBA.request("/event/%s/matches/simple" % event_key)
+
+        elif post_data["command"] == 'lastmatch':
+            response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
             print(response.content)
-            self.wfile.write(b'Team 2485 is in matches ')
             data = json.loads(response.text)
-            if len(data) > 0:
-                post_message_to_slack(post_data['channel_id'], list_matches(data, "match_number"))
-                self.wfile.write(b'Success!')
+            if data["last_match_key"] is not None:
+                matchkey = data["last_match_key"]
+                matchdata = json.loads(TBA.request("/match/%s" % matchkey).text)
+
+                winner = matchdata["winning_alliance"]
+
+                ouralliance = ""
+                otheralliance = ""
+
+                if "frc2485" in matchdata["alliances"]["red"]["team_keys"]:
+                    ouralliance = "red"
+                    otheralliance = "blue"
+                elif "frc2485" in matchdata["alliances"]["blue"]["team_keys"]:
+                    ouralliance = "blue"
+                    otheralliance = "red"
+
+                wonlost = "won" if ouralliance == winner else "lost"
+
+                string = "Team 2485's last match was match " + str(matchdata["match_number"])
+                string += ". We " + wonlost
+                string += " with score " + matchdata["score_breakdown"][ouralliance]["totalPoints"] + "-" + matchdata["score_breakdown"][otheralliance]["totalPoints"]
+                string += " (" + matchdata["score_breakdown"][ouralliance]["rp"] + " RP earned). "
+                string += data["overall_status_str"]
+
+                self.wfile.write(bytes(string))
+
             else:
-                self.wfile.write(b"Matches have not been posted yet.")
+                self.wfile.write(b"Team 2485 has not had any matches yet.")
             print(data)
-        elif post_data["command"] == 'announcerank':
-            response = TBA.request("/event/%s/status" % event_key)
+
+        elif post_data["command"] == 'nextmatch':
+            print('Matches!')
+            response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
             # Print the status code of the response.
             print('STATUS CODE: ' + str(response.status_code))
+            print(response.content)
             data = json.loads(response.text)
-            print('TBA RETURN: ' + str(data))
-            if "ranking" in data:
-                self.wfile.write(b'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
-                post_message_to_slack(post_data['channel_id'],
-                                      'Team 2485 is ranked ' + clear_b(data["ranking"]["rank"]))
+            if data["next_match_key"] is not None:
+                matchkey = data["next_match_key"]
+                matchdata = json.loads(TBA.request("/match/%s" % matchkey).text)
+
+                ouralliance = ""
+
+                if "frc2485" in matchdata["alliances"]["red"]["team_keys"]:
+                    ouralliance = "red"
+                elif "frc2485" in matchdata["alliances"]["blue"]["team_keys"]:
+                    ouralliance = "blue"
+
+                time = datetime.datetime.fromtimestamp(int(matchdata["predicted_time"]))
+
+                string = "Team 2485's next match is match " + str(matchdata["match_number"])
+                string += " at " + time.hour + ":" + time.minute + ". "
+                string += "Alliance partners: " + ', '.join(matchdata["alliances"][ouralliance]["team_keys"].remove("frc2485")) + ". "
+
+                self.wfile.write(bytes(string))
             else:
-                post_message_to_slack(post_data['channel_id'], clear_b(data["overall_status_str"]))
-            self.wfile.write(b'Success!')
-        elif post_data["command"] == 'init-cheer':
-            post_message_to_slack(post_data['channel_id'], 'WE ARE...')
-            self.wfile.write(b'Success!')
-        elif post_data["command"] == 'cheer':
-            post_message_to_slack(post_data['channel_id'], 'WARLORDS!')
-            self.wfile.write(b'Success!')
-        elif post_data["command"] == 'cheera':
-            post_message_to_slack(post_data['channel_id'], 'WARLORDA!')
-            self.wfile.write(b'Success!')
+                self.wfile.write(b"Match data has not been posted yet.")
+            print(data)
+
+
         elif post_data["command"] == 'toggle-reminders':
             file = open("nosend.txt", "r")
             contents = file.read()
@@ -263,182 +287,23 @@ def get_month_string(days_from_now=0):
     return calendar.day_name[date.weekday()] + ", " + date.strftime("%B") + " " + str(date.day)
 
 
-def get_people_from_sheet(date, sheet=SHEET_NAME):
-    sheet_values = get_sheet(sheet=sheet)
-
-    # date_cols is a list as some days (ie Saturdays) have multiple shifts listed on the same row.
-    date_cols = []
-    date_row = -1
-
-    day_key = "Default"
-
-    people = PEOPLE_FORMAT.copy()
-
-    # find location of date
-    for row, arr in enumerate(sheet_values):
-        for col, val in enumerate(arr):
-            nums = [int(s) for s in val.split() if s.isdigit()]
-            if len(nums) > 0 and date == str(nums[0]):
-                date_cols.append(col)
-                date_row = row
-
-        # breaks here to allow adding other shifts on the same day
-        if date_row > -1:
-            break
-
-    # find what day it is
-    for key, value in SHIFTS_FORMAT.items():
-        for row, arr in enumerate(sheet_values):
-            if key in arr[date_cols[0]]:
-                day_key = key
-
-    # prep shifts
-    for key, value in people.items():
-        # DEEP copy (.copy() method doesn't work for some reason)
-        people[key] = copy.deepcopy(SHIFTS_FORMAT[day_key])
-
-    shift = 0
-
-    # get people
-    for col in date_cols:
-        is_a_name = True
-        name_row = date_row + 1
-
-        shift_key = SHIFTS[day_key][shift]
-
-        while is_a_name and name_row < len(sheet_values):
-            val = sheet_values[name_row][col]
-            department = sheet_values[name_row][0]
-
-
-            if any(char.isdigit() for char in val):
-                is_a_name = False
-            else:
-
-                vals = val.split(', ')
-                final_vals = []
-
-                print(vals)
-
-                for person in vals:
-                    if person not in final_vals:
-                        final_vals.append(person.strip())
-
-                if department in people.keys():
-                    people[department][shift_key] += final_vals
-
-                name_row += 1
-
-        shift += 1
-
-    return people
-
-
-def send_reminders():
-    day = get_day(REMIND_DAYS_AHEAD)
-
-    people = get_people_from_sheet(date=day)
-
-    print("People to remind:", people)
-
-    slack_users = get_all_slack_users()
-
-    user_ids = {}
-
-    missing_people = []
-
-    for department, dict in people.items():
-        for shift, arr in dict.items():
-            for name in arr:
-                if name not in missing_people:
-                    missing_people.append(name)
-
-    found_persons = []
-
-    for user in slack_users:
-        name = user["profile"]["real_name_normalized"]
-        for person in missing_people:
-
-            same_person = True
-
-            name_arr = name.split(" ")
-            person_arr = person.split(" ")
-
-            for person_part in person_arr:
-                if person_part not in name_arr:
-                    same_person = False
-                    break
-
-            if same_person:
-                if person in found_persons:
-                    found_persons.remove(person)
-                    user_ids[person] = ''
-                    missing_people.append(person + " (multiple found)")
-                elif len(person) > 0:
-                    found_persons.append(person)
-                    user_ids[person] = user["id"]
-                    if person in missing_people:
-                        missing_people = list(filter(lambda a: a != person, missing_people))
-
-        for key, value in DEPARTMENT_HEADS.items():
-            if name == value:
-                DEPARTMENT_HEADS[key] = user["id"]
-
-    # todo deal with non saturdays
-
-    debug_string = "Sent to: "
-
-    file = open("nosend.txt", "r")
-    contents = file.read()
-    no_send = contents.split(",")
-
-    print("No send:", no_send)
-
-    for department, dict in people.items():
-        for shift, arr in dict.items():
-            for name in arr:
-                if name not in missing_people and name in list(user_ids.keys()) and user_ids[name] not in no_send:
-                    string = "Hello " + "<@" + user_ids[name] + ">" + ", "
-                    string += "you are signed up " + str(REMIND_DAYS_AHEAD) + " days from now "
-                    string += "on *" + get_month_string(REMIND_DAYS_AHEAD) + "* "
-                    string += "for the *" + shift + "* shift. "
-                    string += "\nIf you need to reschedule, please dm " + "<@" + DEPARTMENT_HEADS[
-                        department] + ">" + ". "
-                    string += "To opt out of reminders, type `/toggle-reminders`. "
-                    string += "<" + SHEET_URL + "|Click here to go to the Scheduling Sheet.>"
-
-                    print(string)
-
-                    debug_string += "<@" + user_ids[name] + "> "
-
-                    if not DEBUG_MODE:
-                        post_message_to_slack(user_ids[name], string)
-
-    debug_string += "\nNot Found: "
-
-    for value in missing_people:
-        debug_string += value + " "
-
-    print(debug_string)
-
-    post_message_to_slack((DEPARTMENT_HEADS["Bot"]), debug_string)
-
-
-def poll_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-
-def run_scheduler():
-    if not DEBUG_MODE:
-        print("Running scheduler...")
-        schedule.every().day.at(REMIND_TIME).do(send_reminders)
-    else:
-        print("Sending message...")
-        send_reminders()
-
-    poll_scheduler()
+# def poll_scheduler():
+#     while True:
+#         response = TBA.request("/team/frc2485/event/%s/status" % EVENT)
+#         # Print the status code of the response.
+#         print('STATUS CODE: ' + str(response.status_code))
+#         data = json.loads(response.text)
+#
+#         message = ""
+#
+#         if "last_match_key" in data.keys() and data["last_match_key"] != lastMatchKey:
+#             lastMatchKey = data["last_match_key"]
+#
+#         modifiedSince = datetime.datetime.
+#         time.slee
+# def run_scheduler():
+#
+#     poll_scheduler()
 
 
 def run_httpserver(port=8000, server_class=HTTPServer, handler_class=S):
@@ -449,15 +314,17 @@ def run_httpserver(port=8000, server_class=HTTPServer, handler_class=S):
 
 
 def run(port=8000):
-    http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
+    # http_thread = multiprocessing.Process(target=run_httpserver, args=(port,))
+    #
+    # http_thread.daemon = True
+    #
+    # if not DEBUG_MODE:
+    #     http_thread.start()
+    #
+    # run_scheduler()
 
-    # idk  why this works but eh
-    http_thread.daemon = True
+    run_httpserver(port)
 
-    if not DEBUG_MODE:
-        http_thread.start()
-
-    run_scheduler()
 
 
 if __name__ == "__main__":
