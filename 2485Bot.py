@@ -310,12 +310,15 @@ def get_people_from_sheet(date, sheet=SHEET_NAME):
             val = sheet_values[name_row][col]
             department = sheet_values[name_row][0]
 
+
             if any(char.isdigit() for char in val):
                 is_a_name = False
             else:
 
                 vals = val.split(', ')
                 final_vals = []
+
+                print(vals)
 
                 for person in vals:
                     if person not in final_vals:
