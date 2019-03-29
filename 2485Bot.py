@@ -45,6 +45,7 @@ DEBUG_MODE = False
 SHIFTS = {"Default": ["6pm-10pm"], "Saturday": ["8am-12pm", "12pm-5pm", "5pm-10pm"]}
 SHIFTS_FORMAT = {}
 
+
 for key, arr in SHIFTS.items():
     SHIFTS_FORMAT[key] = {}
     for index, value in enumerate(arr):
@@ -270,6 +271,21 @@ class S(BaseHTTPRequestHandler):
                 self.wfile.write(b'You will no longer be sent reminders. Use \'/toggle-reminders\' to undo this.')
             file.write(contents)
             file.close()
+
+        elif post_data["command"] == "biglame":
+            text = post_data["text"]
+            texts = text.split()
+            users = []
+            for t in texts:
+                if "<@U" in t:
+                    users.append(t.remove("<").remove(">"))
+                    text.remove(t)
+            for u in users:
+                text += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan."
+                post_message_to_slack(u, text)
+
+
+
 
 
 def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
