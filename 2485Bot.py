@@ -223,11 +223,14 @@ class S(BaseHTTPRequestHandler):
                 matchdata = json.loads(TBA.request("/match/%s" % matchkey).text)
 
                 ouralliance = ""
+                opponentalliance = ""
 
                 if "frc2485" in matchdata["alliances"]["red"]["team_keys"]:
                     ouralliance = "red"
+                    opponentalliance = "blue"
                 elif "frc2485" in matchdata["alliances"]["blue"]["team_keys"]:
                     ouralliance = "blue"
+                    opponentalliance = "red"
 
                 time = datetime.datetime.fromtimestamp(int(matchdata["predicted_time"]))
 
@@ -240,9 +243,12 @@ class S(BaseHTTPRequestHandler):
                 alliances = matchdata["alliances"][ouralliance]["team_keys"]
                 alliances.remove("frc2485")
 
+                opponents = matchdata["alliances"][opponentalliance]["team_keys"]
+
                 string = "Team 2485's next match is match *" + str(matchdata["match_number"])
                 string += "* at *" + str(hour) + ":" + str(time.minute) + " " + meridiem + "*. "
-                string += "Alliance partners: " + ", ".join(alliances).replace("frc", "") +  ". "
+                string += "Alliance: " + ", ".join(alliances).replace("frc", "") +  ". "
+                string += "Opponents: " + ", ".join(opponents).replace("frc", "") + ". "
 
                 self.wfile.write(bytes(string, "utf-8"))
             else:
