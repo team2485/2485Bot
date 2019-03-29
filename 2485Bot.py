@@ -19,7 +19,7 @@ import gspread
 
 from sys import argv
 
-EVENT = "2019casd"
+EVENT = "2019nvlv"
 
 TEAM = "frc2485"
 
