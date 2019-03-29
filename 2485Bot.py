@@ -274,13 +274,19 @@ class S(BaseHTTPRequestHandler):
 
         elif post_data["command"] == "biglame":
             text = post_data["text"]
-            texts = text.split()
+            texts = text.split("+")
             users = []
+            user_ids = []
+            members = get_all_slack_users()
             for t in texts:
-                if "<@U" in t:
-                    users.append(t.remove("<").remove(">"))
+                if "%40" in t:
+                    users.append(t.remove("%40"));
                     text.remove(t)
-            for u in users:
+            for member in members:
+                if member["name"] in users:
+                    user_ids.append(member["id"])
+            for u in user_ids:
+                text.replace("+", " ")
                 text += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan."
                 post_message_to_slack(u, text)
 
