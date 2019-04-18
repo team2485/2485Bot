@@ -285,11 +285,23 @@ class S(BaseHTTPRequestHandler):
             for member in members:
                 if member["name"] in users:
                     user_ids.append(member["id"])
+
+            text = text.replace("+", " ")
+            message = ""
+            for i in range (0, len(text)):
+                if text[i] == "%":
+                    message += bytes.fromhex(text[i+1] + text[i+2]).decode('utf-8')
+                    i += 2
+                else:
+                    message += text[i]
+            message += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan._"
             for u in user_ids:
-                text = text.replace("+", " ")
-                text += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan._"
-                post_message_to_slack(u, text)
-            self.wfile.write(bytes("Messages were sent to " + str(users), "utf-8")) 
+                post_message_to_slack(u, message)
+            str = "Message was sent to " + str(users).replace("[", "").replace("]", "").replace("'", "") + " by " + post_data["user_name"] + ": \n\n" + message + "\n\n ---"
+            self.wfile.write(bytes(str, "utf-8"))
+            file = open("biglame.txt", "a")
+            file.write(str)
+            file.close("")
 
 
 
