@@ -19,7 +19,7 @@ import gspread
 
 from sys import argv
 
-EVENT = "2019nvlv"
+EVENT = "2019roe"
 
 TEAM = "frc2485"
 
@@ -280,15 +280,16 @@ class S(BaseHTTPRequestHandler):
             members = get_all_slack_users()
             for t in texts:
                 if "%40" in t:
-                    users.append(t.remove("%40"));
-                    text.remove(t)
+                    users.append(t.replace("%40", ""));
+                    text = text.replace(t,"")
             for member in members:
                 if member["name"] in users:
                     user_ids.append(member["id"])
             for u in user_ids:
-                text.replace("+", " ")
-                text += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan."
+                text = text.replace("+", " ")
+                text += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan._"
                 post_message_to_slack(u, text)
+            self.wfile.write(bytes("Messages were sent to " + str(users), "utf-8")) 
 
 
 
