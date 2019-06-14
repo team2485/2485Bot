@@ -286,11 +286,11 @@ class S(BaseHTTPRequestHandler):
                 if member["name"] in users:
                     user_ids.append(member["id"])
 
-            message = "Yo. \n \n _-<@" + post_data["user_name"] + ">"
+            message = "Yo.   _\u2014<@" + post_data["user_name"] + ">_ (via `/yoyo`)"
             for u in user_ids:
                 post_message_to_slack(u, message)
-            str = "A \"Yo.\" was sent to " + str(users).replace("[", "").replace("]", "").replace("'", "") + " by " + post_data["user_name"] + ": \n\n" + message + "\n\n ---"
-            self.wfile.write(bytes(str, "utf-8"))
+            string = "A \"Yo.\" was sent to " + str(users).replace("[", "<@").replace("]", ">").replace("'", "").replace(" ", "").replace(",","> <@")
+            self.wfile.write(bytes(string, "utf-8"))
 
 
 def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
