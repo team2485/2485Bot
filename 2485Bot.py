@@ -272,7 +272,7 @@ class S(BaseHTTPRequestHandler):
             file.write(contents)
             file.close()
 
-        elif post_data["command"] == "biglame":
+        elif post_data["command"] == "yoyo":
             text = post_data["text"]
             texts = text.split("+")
             users = []
@@ -286,25 +286,11 @@ class S(BaseHTTPRequestHandler):
                 if member["name"] in users:
                     user_ids.append(member["id"])
 
-            text = text.replace("+", " ")
-            message = ""
-            for i in range (0, len(text)):
-                if text[i] == "%":
-                    message += bytes.fromhex(text[i+1] + text[i+2]).decode('utf-8')
-                    i += 2
-                else:
-                    message += text[i]
-            message += "\n \n _this message was sent anonymously by `/biglame`. You can blame Nathan._"
+            message = "Yo. \n \n _-<@" + post_data["user_name"] + ">"
             for u in user_ids:
                 post_message_to_slack(u, message)
-            str = "Message was sent to " + str(users).replace("[", "").replace("]", "").replace("'", "") + " by " + post_data["user_name"] + ": \n\n" + message + "\n\n ---"
+            str = "A \"Yo.\" was sent to " + str(users).replace("[", "").replace("]", "").replace("'", "") + " by " + post_data["user_name"] + ": \n\n" + message + "\n\n ---"
             self.wfile.write(bytes(str, "utf-8"))
-            file = open("biglame.txt", "a")
-            file.write(str)
-            file.close("")
-
-
-
 
 
 def get_sheet(url=SHEET_URL, sheet=SHEET_NAME):
